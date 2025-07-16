@@ -1,0 +1,104 @@
+==================================================================
+MAKE SURE YOU SETUP ALL DEPENDENCIES BEFORE YOU ATTEMPT TO COMPILE
+==================================================================
+
+(in case pkgconfig is not present on system.)
+
+sudo apt install pkg-config
+==================================================================
+
+(in case boost is not present on system.)
+
+sudo apt install libboost-all-dev
+==================================================================
+
+(in case ICU is not present on system.)
+
+sudo apt-get install libicu-dev
+==================================================================
+(in case ssl is not present on system.)
+
+sudo apt install libssl-dev
+==================================================================
+(in case Qt 6.9 is not present on system.)
+
+sudo apt install qt6-base-dev qt6-base-dev-tools qt6-tools-dev qt6-tools-dev-tools
+
+(Qt Path Hints (if using Qt installed outside system packages)):
+cmake -DCMAKE_PREFIX_PATH="/home/youruser/Qt/6.9.0/gcc_64" ..
+
+(Or set CMAKE_PREFIX_PATH in your environment).
+==================================================================
+(in case libbcrypt.so is not present on system.)
+
+(-- Extract bcrypt.7z, then navigate to it, and perform both commands below. --)
+
+gcc -shared -fPIC -o libbcrypt.so bcrypt.c
+
+sudo cp libbcrypt.so /usr/local/lib
+==================================================================
+(in case libsodium is not present on system.)
+
+sudo apt install libsodium-dev
+==================================================================
+(in case libargon2 is not present on system.)
+
+sudo apt install libargon2-dev
+
+==================================================================
+ONCE YOU FINISH SETTING UP ALL DEPENDENCIES
+==================================================================
+then you do below commands to COMPILE:
+
+1- mkdir -p build && build
+2- cmake ..
+3- make -j$(nproc)
+
+==================================================================
+IMPORTANT, DO NOT IGNORE OR YOUR CLIENT WILL PROBABLY CRASH
+==================================================================
+
+Do not forget to modify the location of the client's wordlist when
+changing between OSes and different machines by modifying
+the config.ini and server.ini files, also make sure that the ip
+of the server and port match properly.
+
+
+==================================================================
+MANUAL COMPILATION WITHOUT CMAKE (IGNORE BELOW UNLESS IF EXPERT.)
+==================================================================
+
+(Navigate to Distributed-Hash-Cracker-CPP/Distributed-Hash-Cracker-CPP-Client/include/scrypt folder in terminal, run):
+
+1- mkdir -p obj
+
+2- find . -name "*.c" ! -name "*ARM*" ! -name "*X86*" ! -name "*RDRAND*" | while read f; do
+    gcc -c "$f" \
+        -I. \
+        -I./libcperciva/cpusupport \
+        -I./libcperciva/util \
+        -I./libcperciva/alg \
+        -I./libcperciva/crypto \
+        -I./lib \
+        -I./lib-platform \
+        -I./lib-platform/crypto \
+        -I./lib-platform/util \
+        -DHAVE_CONFIG_H \
+        -o "obj/$(basename "${f%.c}.o")"
+done
+
+(Then run):
+
+3- ar rcs libscrypt.a obj/*.o
+
+(Then finally go back to Distributed-Hash-Cracker-CPP-Client (client source) folder and run):
+
+g++ -o DistributedHashCracker Distributed-Hash-Cracker-CPP-Client.cpp \
+    -Iinclude -Iinclude/scrypt \
+    include/scrypt/libscrypt.a \
+    -lboost_system -lssl -lcrypto -lboost_thread -lboost_chrono -lboost_locale \
+    -lpthread -lbcrypt -lcrypt -largon2 -lsodium
+
+(Then go to Distributed-Hash-Cracker-CPP/Distributed-Hash-Cracker-CPP (server source) folder and run):
+
+g++ Distributed-Hash-Cracker-CPP-Server.cpp -o Server -lboost_system -lboost_filesystem -lssl -lboost_thread -lboost_chrono -lboost_locale -lpthread

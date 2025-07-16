@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Distributed Hash Cracker - Server</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+
+    <item>
+     <widget class="QGroupBox" name="groupBoxServer">
+      <property name="title">
+       <string>Server Control</string>
+      </property>
+      <layout class="QHBoxLayout">
+       <item><widget class="QLabel" name="labelPort">
+         <property name="text">
+          <string>Port:</string>
+         </property>
+       </widget></item>
+       <item><widget class="QLineEdit" name="lineEditPort"/></item>
+       <item><widget class="QPushButton" name="buttonStart">
+         <property name="text">
+          <string>Start Server</string>
+         </property>
+       </widget></item>
+       <item><widget class="QPushButton" name="buttonStop">
+         <property name="text">
+          <string>Stop Server</string>
+         </property>
+       </widget></item>
+      </layout>
+     </widget>
+    </item>
+
+    <item>
+     <widget class="QGroupBox" name="groupBoxHash">
+      <property name="title">
+       <string>Hash Input</string>
+      </property>
+      <layout class="QFormLayout">
+       <item row="0" column="0"><widget class="QLabel" name="labelHashType">
+         <property name="text">
+          <string>Hash Type:</string>
+         </property>
+       </widget></item>
+       <item row="0" column="1"><widget class="QComboBox" name="comboBoxHashType"/></item>
+       <item row="1" column="0"><widget class="QLabel" name="labelHash">
+         <property name="text">
+          <string>Hash:</string>
+         </property>
+       </widget></item>
+       <item row="1" column="1"><widget class="QLineEdit" name="lineEditHash"/></item>
+       <item row="2" column="0"><widget class="QLabel" name="labelSalt">
+         <property name="text">
+          <string>Salt:</string>
+         </property>
+       </widget></item>
+       <item row="2" column="1"><widget class="QLineEdit" name="lineEditSalt"/></item>
+       <item row="3" column="1"><widget class="QPushButton" name="buttonSendHash">
+         <property name="text">
+          <string>Send to Clients</string>
+         </property>
+       </widget></item>
+      </layout>
+     </widget>
+    </item>
+
+    <item>
+     <widget class="QGroupBox" name="groupBoxClients">
+      <property name="title">
+       <string>Connected Clients</string>
+      </property>
+      <layout class="QVBoxLayout">
+       <item><widget class="QListWidget" name="listWidgetClients"/></item>
+       <item><widget class="QPushButton" name="buttonReload">
+         <property name="text">
+          <string>Reload Clients</string>
+         </property>
+       </widget></item>
+      </layout>
+     </widget>
+    </item>
+
+    <item>
+     <widget class="QGroupBox" name="groupBoxLogs">
+      <property name="title">
+       <string>Logs</string>
+      </property>
+      <layout class="QVBoxLayout">
+       <item><widget class="QTextEdit" name="textEditLogs">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget></item>
+      </layout>
+     </widget>
+    </item>
+
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
