@@ -1,30 +1,45 @@
 @echo off
 setlocal
 
-:: CONFIGURE THESE PATHS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-set QT_PATH=C:\Qt\6.9.1\msvc2022_64\lib\cmake
+REM === Configuration ===
+set QT_PATH=C:\Qt\6.9.1\msvc2022_64
 set BUILD_TYPE=Release
+set BUILD_DIR=build
 
-:: Optional: vcpkg toolchain
-:: set VCPKG_TOOLCHAIN=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+REM Optional: clear previous build
+if exist %BUILD_DIR% (
+    echo Removing old build directory...
+    rmdir /s /q %BUILD_DIR%
+)
 
-:: CLEAN OLD BUILD
-if exist build rmdir /s /q build
-mkdir build
-cd build
+REM Create build directory
+mkdir %BUILD_DIR%
+cd %BUILD_DIR%
 
-:: GENERATE PROJECT FILES
-cmake .. -G "NMake Makefiles" ^
-  -DCMAKE_PREFIX_PATH=%QT_PATH% ^
-  -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
-  -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
-  :: -DCMAKE_TOOLCHAIN_FILE=%VCPKG_TOOLCHAIN%  (uncomment if using vcpkg)
+REM === Set CMAKE_PREFIX_PATH environment variable ===
+set CMAKE_PREFIX_PATH=%QT_PATH%
 
-:: COMPILE
+REM === Run CMake configure/generate ===
+echo Running CMake configuration...
+cmake -G "NMake Makefiles" ^
+    -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
+    ..
+
+if ERRORLEVEL 1 (
+    echo CMake configuration failed.
+    pause
+    exit /b 1
+)
+
+REM === Build the project ===
+echo Building project with nmake...
 nmake
 
-cd ..
-echo.
-echo ✅ Build complete.
-echo Output: build\\DistributedHashCrackerServerGUI.exe
+if ERRORLEVEL 1 (
+    echo Build failed.
+    pause
+    exit /b 1
+)
+
+echo Build complete.
 pause
