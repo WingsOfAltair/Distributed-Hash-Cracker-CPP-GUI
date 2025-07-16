@@ -2,7 +2,7 @@
 setlocal
 
 :: CONFIGURE THESE PATHS ↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓
-set QT_PATH=C:\Qt\6.9.0\msvc2019_64
+set QT_PATH=C:\Qt\6.9.1\msvc2022_64\lib\cmake
 set BUILD_TYPE=Release
 
 :: Optional: vcpkg toolchain
