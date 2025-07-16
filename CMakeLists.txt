@@ -115,10 +115,13 @@ list(APPEND SCRYPT_SRC
 # ------------------------------
 
 include_directories(
+    ${SRC_DIR}
     ${SRC_DIR}/include
     ${SRC_DIR}/gui
     ${SRC_DIR}/core
     ${SRC_DIR}/shared
+    ${Boost_INCLUDE_DIRS}
+    ${OPENSSL_INCLUDE_DIR}
 )
 
 qt_add_executable(DistributedHashCrackerServerGUI
