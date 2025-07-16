@@ -9,7 +9,7 @@ project(DistributedHashCrackerServerGUI LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-# Find libsodium using pkg-config
+# Find libsodium using pkg-config (only on UNIX)
 if(UNIX)
     find_package(PkgConfig REQUIRED)
     pkg_check_modules(SODIUM REQUIRED libsodium)
@@ -20,15 +20,6 @@ endif()
 find_package(Qt6 REQUIRED COMPONENTS Widgets)     
 
 set(SRC_DIR ${CMAKE_SOURCE_DIR})
-
-target_include_directories(DistributedHashCrackerServerGUI PRIVATE
-    ${SRC_DIR}/include
-    ${SRC_DIR}/gui
-    ${SRC_DIR}/core
-    ${SRC_DIR}/shared
-    ${Boost_INCLUDE_DIRS}
-    ${OPENSSL_INCLUDE_DIR}
-)
 
 file(GLOB_RECURSE SOURCES
     ${SRC_DIR}/include/*.cpp
@@ -43,17 +34,11 @@ qt_standard_project_setup()
 link_directories(${CMAKE_SOURCE_DIR}/lib)
 
 # ------------------------------
-# Include internal headers
-# ------------------------------
-include_directories(${CMAKE_SOURCE_DIR}/include)
-
-# ------------------------------
 # Boost
 # ------------------------------
 find_package(Boost REQUIRED COMPONENTS system filesystem thread chrono locale)
 if(Boost_FOUND)
     message(STATUS "Boost version: ${Boost_VERSION}")
-    include_directories(${Boost_INCLUDE_DIRS})
     link_directories("C:/boost/lib64-msvc-14.3")
 else()
     message(FATAL_ERROR "Boost not found")
@@ -64,7 +49,6 @@ endif()
 # ------------------------------
 find_package(OpenSSL REQUIRED)
 if(OPENSSL_FOUND)
-    include_directories(${OPENSSL_INCLUDE_DIR})
     message(STATUS "OpenSSL include directory: ${OPENSSL_INCLUDE_DIR}")
 else()
     message(FATAL_ERROR "OpenSSL not found")
@@ -83,7 +67,6 @@ if(WIN32)
         message(FATAL_ERROR "argon2.lib not found at ${ARGON2_LIB_PATH}")
     endif()    
 
-    # Check if file actually exists
     if(NOT EXISTS "${BCRYPT_LIB_PATH}")
         message(FATAL_ERROR "bcrypt.lib not found at ${BCRYPT_LIB_PATH}")
     endif()
@@ -92,13 +75,11 @@ endif()
 # ------------------------------
 # Build scrypt static library from source files
 # ------------------------------
-
 file(GLOB_RECURSE SCRYPT_SRC
     ${CMAKE_SOURCE_DIR}/include/scrypt/*.c
 )
 
-# Exclude ARM-only test files that break build on non-ARM systems
-# Remove ARM and X86-specific files
+# Exclude ARM and X86-specific files that break build on non-ARM systems
 foreach(cpu_file ${SCRYPT_SRC})
     if(cpu_file MATCHES ".*(ARM|X86|RDRAND).*\\.c$")
         message(STATUS "Excluding CPU-specific file: ${cpu_file}")
@@ -137,13 +118,22 @@ qt_add_executable(DistributedHashCrackerServerGUI
     ${UIS_HDRS}
 )
 
+# Use target_include_directories instead of global include_directories
+target_include_directories(DistributedHashCrackerServerGUI PRIVATE
+    ${SRC_DIR}/include
+    ${SRC_DIR}/gui
+    ${SRC_DIR}/core
+    ${SRC_DIR}/shared
+    ${Boost_INCLUDE_DIRS}
+    ${OPENSSL_INCLUDE_DIR}
+)
+
 if (WIN32)
     target_link_libraries(DistributedHashCrackerServerGUI PRIVATE
         Qt6::Widgets
         ${Boost_LIBRARIES}
         OpenSSL::SSL
         OpenSSL::Crypto
-
     )
 else()
     target_link_libraries(DistributedHashCrackerServerGUI PRIVATE
