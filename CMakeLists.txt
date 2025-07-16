@@ -113,6 +113,13 @@ list(APPEND SCRYPT_SRC
 # ------------------------------
 # Server executable
 # ------------------------------
+include_directories(
+    ${SRC_DIR}/include
+    ${SRC_DIR}/gui
+    ${SRC_DIR}/core
+    ${SRC_DIR}/shared
+)
+
 qt_add_executable(DistributedHashCrackerServerGUI
     ${SOURCES}
     ${UIS_HDRS}
