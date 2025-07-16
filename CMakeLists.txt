@@ -21,7 +21,7 @@ find_package(Qt6 REQUIRED COMPONENTS Widgets)
 
 set(SRC_DIR ${CMAKE_SOURCE_DIR})
 
-include_directories(
+target_include_directories(DistributedHashCrackerServerGUI PRIVATE
     ${SRC_DIR}/include
     ${SRC_DIR}/gui
     ${SRC_DIR}/core
