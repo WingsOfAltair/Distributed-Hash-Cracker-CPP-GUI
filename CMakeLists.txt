@@ -113,7 +113,6 @@ list(APPEND SCRYPT_SRC
 # ------------------------------
 # Server executable
 # ------------------------------
-target_compile_definitions(DistributedHashCrackerServerGUI PRIVATE _WIN32_WINNT=0x0601)
 
 include_directories(
     ${SRC_DIR}/include
@@ -126,6 +125,8 @@ qt_add_executable(DistributedHashCrackerServerGUI
     ${SOURCES}
     ${UIS_HDRS}
 )
+
+target_compile_definitions(DistributedHashCrackerServerGUI PRIVATE _WIN32_WINNT=0x0601)
 
 # Use target_include_directories instead of global include_directories
 target_include_directories(DistributedHashCrackerServerGUI PRIVATE
