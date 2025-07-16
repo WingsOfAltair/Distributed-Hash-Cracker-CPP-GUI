@@ -182,4 +182,13 @@ if(WIN32)
             )
         endforeach()
     endforeach()
+
+    set(QT_PLUGINS_PLATFORM_DIR "${Qt6_DIR}/../../../plugins/platforms")
+
+    add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${QT_PLUGINS_PLATFORM_DIR}/qwindows.dll"
+            "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
+    )
 endif()
