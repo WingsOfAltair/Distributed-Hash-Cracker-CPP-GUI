@@ -161,11 +161,19 @@ endif()
 # Copy DLLs and config files (Windows)
 # ------------------------------
 if(WIN32)
-    set(BOOST_DLLS
-        "C:/boost/lib64-msvc-14.3/boost_thread-vc143-mt-gd-x64-1_85.dll"
-        "C:/boost/lib64-msvc-14.3/boost_filesystem-vc143-mt-gd-x64-1_85.dll"
-        "C:/boost/lib64-msvc-14.3/boost_locale-vc143-mt-gd-x64-1_85.dll"
-    )
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(BOOST_DLLS
+            "C:/boost/lib64-msvc-14.3/boost_thread-vc143-mt-gd-x64-1_85.dll"
+            "C:/boost/lib64-msvc-14.3/boost_filesystem-vc143-mt-gd-x64-1_85.dll"
+            "C:/boost/lib64-msvc-14.3/boost_locale-vc143-mt-gd-x64-1_85.dll"
+        )
+    else()
+        set(BOOST_DLLS
+            "C:/boost/lib64-msvc-14.3/boost_thread-vc143-mt-x64-1_85.dll"
+            "C:/boost/lib64-msvc-14.3/boost_filesystem-vc143-mt-x64-1_85.dll"
+            "C:/boost/lib64-msvc-14.3/boost_locale-vc143-mt-x64-1_85.dll"
+        )
+    endif()
 
     foreach(target DistributedHashCrackerServerGUI)
         foreach(dll ${BOOST_DLLS})
