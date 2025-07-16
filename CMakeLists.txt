@@ -113,6 +113,8 @@ list(APPEND SCRYPT_SRC
 # ------------------------------
 # Server executable
 # ------------------------------
+target_compile_definitions(DistributedHashCrackerServerGUI PRIVATE _WIN32_WINNT=0x0601)
+
 include_directories(
     ${SRC_DIR}/include
     ${SRC_DIR}/gui
