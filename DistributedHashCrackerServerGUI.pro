@@ -18,7 +18,6 @@ SOURCES += \
 HEADERS += \
     gui/MainWindow.h \
     core/ServerManager.h \
-    shared/SomeSharedFile.h \
     shared/BaseAsyncLogger.h \
     shared/AsyncLogger.h \
     shared/AsyncStorageLogger.h
