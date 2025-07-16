@@ -27,8 +27,7 @@ INCLUDEPATH += \
     gui \
     core \
     shared \
-    C:/boost/include \
-    "C:/boost/include/boost-1_85" \
+    "C:/boost" \
     "C:/Program Files/OpenSSL-Win64/include"
 
 # ---- Libraries ----
