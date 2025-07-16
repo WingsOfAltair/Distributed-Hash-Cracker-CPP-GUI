@@ -21,6 +21,8 @@ HEADERS += \
     shared/AsyncLogger.h \
     shared/AsyncStorageLogger.h
 
+FORMS += gui/MainWindow.ui
+
 # ---- Include Paths ----
 INCLUDEPATH += \
     include \
