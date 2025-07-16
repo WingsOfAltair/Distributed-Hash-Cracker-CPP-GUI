@@ -130,42 +130,6 @@ list(APPEND SCRYPT_SRC
 )
 
 # ------------------------------
-# Client executable
-# ------------------------------
-add_executable(DistributedHashCrackerClientGUI 
-    Distributed-Hash-Cracker-CPP-Client/Distributed-Hash-Cracker-CPP-Client.cpp
-)
-
-target_include_directories(DistributedHashCrackerClientGUI PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
-)
-
-if (WIN32)
-target_link_libraries(DistributedHashCrackerClientGUI PRIVATE 
-    ${Boost_LIBRARIES}
-    OpenSSL::SSL
-    OpenSSL::Crypto
-    "${BCRYPT_LIB_PATH}"
-    "${ARGON2_LIB_PATH}"  
-    ${SODIUM_LIBRARIES}   
-    scrypt 
-    Qt6::Widgets
-)
-else()
-target_link_libraries(DistributedHashCrackerClientGUI PRIVATE 
-    ${Boost_LIBRARIES}
-    OpenSSL::SSL
-    OpenSSL::Crypto
-    bcrypt
-    argon2
-    crypt      
-    ${SODIUM_LIBRARIES}   
-    scrypt 
-    Qt6::Widgets
-)
-endif()
-
-# ------------------------------
 # Server executable
 # ------------------------------
 qt_add_executable(DistributedHashCrackerServerGUI
@@ -200,42 +164,11 @@ if(WIN32)
         "C:/boost/lib64-msvc-14.3/boost_locale-vc143-mt-gd-x64-1_85.dll"
     )
 
-    foreach(target DistributedHashCrackerClientGUI DistributedHashCrackerServerGUI)
+    foreach(target DistributedHashCrackerServerGUI)
         foreach(dll ${BOOST_DLLS})
             add_custom_command(TARGET ${target} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different "${dll}" $<TARGET_FILE_DIR:${target}>
             )
         endforeach()
     endforeach()
-endif()
-
-# ------------------------------
-# Copy configuration files
-# ------------------------------
-set(CONFIG_SRC_DIR "${CMAKE_SOURCE_DIR}/x64/Debug")
-set(CONFIG_FILES config.ini server.ini wordlist.txt mutation_list.txt mutation_list_generator_upto_n_times.py)
-
-foreach(FILE ${CONFIG_FILES})
-    foreach(target DistributedHashCrackerClientGUI DistributedHashCrackerServerGUI)
-        add_custom_command(TARGET ${target} POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${CONFIG_SRC_DIR}/${FILE}" $<TARGET_FILE_DIR:${target}>
-        )
-    endforeach()
-endforeach()
-       
-# ------------------------------
-# Copy DLL files
-# ------------------------------
-if (WIN32)              
-    add_custom_command(TARGET DistributedHashCrackerClientGUI POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_SOURCE_DIR}/include/argon2/argon2.dll"
-            "$<TARGET_FILE_DIR:DistributedHashCrackerClientGUI>"
-    )             
-    add_custom_command(TARGET DistributedHashCrackerClientGUI POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${CMAKE_SOURCE_DIR}/include/scrypt/libsodium.dll"
-            "$<TARGET_FILE_DIR:DistributedHashCrackerClientGUI>"
-    )
 endif()
