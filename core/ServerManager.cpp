@@ -22,7 +22,7 @@ void ServerManager::startServer(int port) {
     serverPort = port;
     ioContext = std::make_unique<boost::asio::io_context>();
     acceptor = std::make_unique<tcp::acceptor>(*ioContext, tcp::endpoint(tcp::v4(), port));
-    udpSocket = std::make_unique<udp>(*ioContext, udp::endpoint(udp::v4(), port));
+    udpSocket = std::make_unique<boost::asio::ip::udp::socket>(*ioContext, udp::endpoint(udp::v4(), port));
 
     serverThreads.emplace_back([this]() { this->acceptClients(); });
     serverThreads.emplace_back([this]() { this->udpEchoServer(); });
