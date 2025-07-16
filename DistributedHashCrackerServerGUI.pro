@@ -1,19 +1,18 @@
 QT       += core gui widgets
 
 CONFIG   += c++17 console
-CONFIG   -= app_bundle    # Not for macOS app bundle
+CONFIG   -= app_bundle
 
 TEMPLATE = app
 TARGET = DistributedHashCrackerServerGUI
 
-# Include your source and header files here
+# ---- Source and Header Files ----
 SOURCES += \
     main.cpp \
     gui/MainWindow.cpp \
     core/ServerManager.cpp \
     shared/AsyncLogger.cpp \
     shared/AsyncStorageLogger.cpp
-
 
 HEADERS += \
     gui/MainWindow.h \
@@ -22,25 +21,27 @@ HEADERS += \
     shared/AsyncLogger.h \
     shared/AsyncStorageLogger.h
 
-# Include directories
+# ---- Include Paths ----
 INCLUDEPATH += \
     include \
     gui \
     core \
-    shared
+    shared \
+    C:/boost/include \
+    "C:/Program Files/OpenSSL-Win64/include"
 
-# Boost and OpenSSL include dirs (adjust paths)
-INCLUDEPATH += C:/boost/include
-INCLUDEPATH += C:/Program\ Files/OpenSSL-Win64/include
+# ---- Libraries ----
+LIBS += -LC:/boost/lib64-msvc-14.3 \
+        -lboost_thread-vc143-mt-x64-1_85 \
+        -lboost_filesystem-vc143-mt-x64-1_85 \
+        -lboost_locale-vc143-mt-x64-1_85
 
-# Link libraries (adjust paths and names)
-LIBS += -LC:/boost/lib64-msvc-14.3 -lboost_thread-vc143-mt-x64-1_85 \
-        -LC:/Program\ Files/OpenSSL-Win64/lib/VC/x64/MD -llibssl -llibcrypto
+LIBS += -L"C:/Program Files/OpenSSL-Win64/lib/VC/x64/MD" \
+        -llibssl \
+        -llibcrypto
 
-# Define Windows version target
+# ---- Windows Target ----
 DEFINES += _WIN32_WINNT=0x0601
 
-# Compiler flags (optional)
-QMAKE_CXXFLAGS += -Wall -Wextra
-
-# For deployment, you can add a post-build step to copy DLLs or plugins if needed
+# ---- MSVC-specific Compiler Flags ----
+QMAKE_CXXFLAGS += /W4
