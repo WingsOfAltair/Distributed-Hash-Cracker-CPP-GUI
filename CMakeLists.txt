@@ -192,3 +192,39 @@ if(WIN32)
             "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
     )
 endif()
+
+if(WIN32)
+    set(QT_DLLS
+        "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgetsd.dll"
+        "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Guid.dll"
+        "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Cored.dll"
+    )
+    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(QT_DLLS
+            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgetsd.dll"
+            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Guid.dll"
+            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Cored.dll"
+
+        )
+    else()
+        set(QT_DLLS
+            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgets.dll"
+            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Gui.dll"
+            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Core.dll"
+        )
+    endif()
+
+    foreach(dll ${QT_DLLS})
+        add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${dll}"
+                $<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>
+        )
+    endforeach()
+endif()
+
+add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        "${CMAKE_SOURCE_DIR}/resources/server.ini"
+        $<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/server.ini
+)

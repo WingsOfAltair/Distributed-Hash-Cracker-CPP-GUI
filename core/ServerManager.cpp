@@ -5,13 +5,43 @@
 #include <iostream>
 #include <sstream>
 #include <chrono>
+#include <boost/filesystem.hpp>
 
 AsyncLogger serverLogger("server.txt");
 AsyncStorageLogger crackedLogger("cracked.txt");
 
+int SERVER_PORT = 0;
+
+// Read config file
+std::map<std::string, std::string> readConfig(const std::string& filename) {
+    std::map<std::string, std::string> configMap;
+    boost::filesystem::path fullPath = boost::filesystem::absolute(filename);
+    std::ifstream configFile(fullPath.string());
+
+    if (boost::filesystem::exists(fullPath)) {
+        std::string line;
+        while (std::getline(configFile, line)) {
+            size_t delimiterPos = line.find('=');
+            if (delimiterPos != std::string::npos) {
+                std::string key = line.substr(0, delimiterPos);
+                std::string value = line.substr(delimiterPos + 1);
+                configMap[key] = value;
+            }
+        }
+        configFile.close();
+    }
+    else {
+        std::cerr << "Config file does not exist.\n";
+    }
+
+    return configMap;
+}
+
 ServerManager::ServerManager(QObject* parent) : QObject(parent) {
     readCrackedHashes("cracked.txt");
-    startServer(1337);
+    auto config = readConfig("server.ini");
+    SERVER_PORT = std::stoi(config["SERVER_PORT"]);
+    startServer(SERVER_PORT);
 }
 
 ServerManager::~ServerManager() {
