@@ -6,6 +6,9 @@
 #include <sstream>
 #include <chrono>
 
+AsyncLogger serverLogger("server.txt");
+AsyncStorageLogger crackedLogger("cracked.txt");
+
 ServerManager::ServerManager(QObject* parent) : QObject(parent) {
     readCrackedHashes("cracked.txt");
     startServer(1337);
@@ -13,6 +16,10 @@ ServerManager::ServerManager(QObject* parent) : QObject(parent) {
 
 ServerManager::~ServerManager() {
     //stopServer();
+}
+
+void ServerManager::logServer(const std::string& message) {
+    serverLogger.log(message);
 }
 
 void ServerManager::asyncAcceptClient() {
@@ -26,6 +33,7 @@ void ServerManager::asyncAcceptClient() {
             std::thread(&ServerManager::handleClient, this, socket).detach();
         } else {
             emit logMessage("Accept error: " + QString::fromStdString(ec.message()));
+            logServer(std::string("Accept error: ") + ec.message());
         }
 
         // Start accepting the next client immediately
@@ -58,15 +66,19 @@ void ServerManager::udpEchoServer() {
 
         if (ec && ec != boost::asio::error::message_size) {
             emit logMessage("Receive error: " + QString::fromStdString(ec.message()));
+            logServer(std::string("Receive error: ") + ec.message());
             continue;
         }
 
-        emit logMessage("Received: " +
-                        QString::fromStdString(std::string(data, length)) +
-                        " from " +
-                        QString::fromStdString(sender_endpoint.address().to_string()) +
-                        ":" +
-                        QString::number(sender_endpoint.port()));
+        QString msg = "Received: " +
+                      QString::fromStdString(std::string(data, length)) +
+                      " from " +
+                      QString::fromStdString(sender_endpoint.address().to_string()) +
+                      ":" +
+                      QString::number(sender_endpoint.port());
+        emit logMessage(msg);
+
+        logServer(msg.toStdString());
 
         // Send response
         std::string response = "pong";
@@ -104,10 +116,12 @@ void ServerManager::startServer(int port) {
             ioContext->run();  // 🧵 Blocking run loop
         } catch (const std::exception& ex) {
             emit logMessage("io_context exception: " + QString::fromStdString(ex.what()));
+            logServer(std::string("io_context exception: ") + ex.what());
         }
     });
 
     emit logMessage("Server started on port " + QString::number(port));
+    logServer("Server started on port " + std::to_string(port));
 }
 
 void ServerManager::stopServer() {
@@ -148,6 +162,7 @@ void ServerManager::stopServer() {
     totalClients = 0;
 
     emit logMessage("Server stopped.");
+    logServer(std::string("Server stopped."));
 }
 
 void ServerManager::readCrackedHashes(const QString& file) {
@@ -185,6 +200,7 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
 
     emit clientConnected(QString::fromStdString(clientId));
     emit logMessage("Client connected: " + QString::fromStdString(clientId));
+    logServer(std::string("Client connected: ") + clientId);
     emit clientsStatusChanged();
 
     try {
@@ -206,14 +222,27 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
             else if (message.find("MATCH:") == 0) {
                 matchFound = true;
                 currentPassword = QString::fromStdString(message.substr(6)).split(' ').first();
-                crackedHashes.emplace_back(currentHash, currentSalt, currentPassword);
+                bool found = false;
+                for (const auto& pair : crackedHashes) {
+                    if (std::get<0>(pair) == currentHash && std::get<1>(pair) == currentSalt) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    crackedHashes.emplace_back(currentHash, currentSalt, currentPassword);
+                    crackedLogger.log(currentHash.toStdString() + ":" + currentSalt.toStdString() + ":" + currentPassword.toStdString());
+                }
                 emit logMessage("Match from " + QString::fromStdString(clientId) + ": " + currentPassword);
+                logServer(std::string("Match from ") + clientId + ": " + currentPassword.toStdString());
+                emit StopCracking();
                 this->StopCrackingClients();
             }
         }
     }
     catch (...) {
         emit logMessage("Client disconnected: " + QString::fromStdString(clientId));
+        logServer(std::string("Client disconnected: ") + clientId);
 
         std::lock_guard<std::mutex> lock(clientsMutex);
         clients.erase(clientId);
@@ -234,27 +263,29 @@ void ServerManager::sendHashToClients(const QString& hashType, const QString& ha
     currentSalt = salt;
     matchFound = false;
     clientsResponded = 0;
-    notifyClients();
+    QString decoded;
+    emit StartCracking();
 
-    /*bool found = false;
-    for (const auto& [stored_hash, stored_salt, decoded] : cracked_hashes_storage) {
-        if (stored_hash == hash && stored_salt == salt) {
-            std::cout << "Found pre-cracked Hash: " << stored_hash
-                      << " Salt: " << stored_salt
-                      << " Decoded: " << decoded << std::endl;
-
-            logger.log("Found pre-cracked Hash: " + stored_hash +
-                       " Salt: " + stored_salt +
-                       " Decoded: " + decoded);
-
+    bool found = false;
+    for (const auto& pair : crackedHashes) {
+        if (std::get<0>(pair) == currentHash && std::get<1>(pair) == currentSalt) {
             found = true;
+            decoded = std::get<2>(pair);
             break;
         }
     }
+    if (found) {
+        serverLogger.log("Found pre-cracked Hash: " + currentHash.toStdString() +
+                         " Salt: " + currentSalt.toStdString() +
+                         " Decoded: " + decoded.toStdString());
 
-    if (!found) {
+        emit logMessage("Found pre-cracked Hash: " + currentHash +
+                        " Salt: " + currentSalt +
+                        " Decoded: " + decoded);
+        emit StopCracking();
+    } else {
         notifyClients();
-    }*/
+    }
 }
 
 void ServerManager::notifyClients() {
@@ -273,14 +304,13 @@ void ServerManager::notifyClients() {
             }
             catch (...) {
                 emit logMessage("Failed to notify client: " + QString::fromStdString(id));
+                logServer(std::string("Failed to notify client: ") + id);
             }
         }
     }
 }
 
 void ServerManager::notifyStopAll() {
-    emit StopCracking();
-
     std::lock_guard<std::mutex> lock(clientsMutex);
     for (const auto& [client_id, is_ready] : clientsReady) {
         if (!is_ready) {
@@ -306,6 +336,7 @@ void ServerManager::reloadClients() {
             }
             catch (...) {
                 emit logMessage("Failed to reload client: " + QString::fromStdString(id));
+                logServer(std::string("Failed to reload client: ") + id);
             }
         }
     }

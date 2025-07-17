@@ -11,6 +11,8 @@
 #include <atomic>
 #include <boost/asio.hpp>
 #include <boost/thread.hpp>
+#include "shared/AsyncLogger.h"
+#include "shared/AsyncStorageLogger.h"
 
 class ServerManager : public QObject {
     Q_OBJECT
@@ -27,6 +29,7 @@ public:
     void asyncUdpReceive();
     void StopCrackingClients();
     std::unordered_map<std::string, bool> getConnectedClientsStatus();
+    void logServer(const std::string& message);
 
     std::vector<char> udpSocketBuffer;
     boost::asio::ip::udp::endpoint udpSender;
@@ -38,6 +41,7 @@ signals:
     void logMessage(const QString& message);
     void clientsStatusChanged();
     void StopCracking();
+    void StartCracking();
 
 private:
     std::unique_ptr<boost::asio::io_context> ioContext;

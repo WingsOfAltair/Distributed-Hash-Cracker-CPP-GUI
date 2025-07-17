@@ -47,7 +47,8 @@ template <> constexpr inline auto ServerManager::qt_create_metaobjectdata<qt_met
         "logMessage",
         "message",
         "clientsStatusChanged",
-        "StopCracking"
+        "StopCracking",
+        "StartCracking"
     };
 
     QtMocHelpers::UintData qt_methods {
@@ -67,6 +68,8 @@ template <> constexpr inline auto ServerManager::qt_create_metaobjectdata<qt_met
         QtMocHelpers::SignalData<void()>(8, 2, QMC::AccessPublic, QMetaType::Void),
         // Signal 'StopCracking'
         QtMocHelpers::SignalData<void()>(9, 2, QMC::AccessPublic, QMetaType::Void),
+        // Signal 'StartCracking'
+        QtMocHelpers::SignalData<void()>(10, 2, QMC::AccessPublic, QMetaType::Void),
     };
     QtMocHelpers::UintData qt_properties {
     };
@@ -95,6 +98,7 @@ void ServerManager::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _i
         case 2: _t->logMessage((*reinterpret_cast< std::add_pointer_t<QString>>(_a[1]))); break;
         case 3: _t->clientsStatusChanged(); break;
         case 4: _t->StopCracking(); break;
+        case 5: _t->StartCracking(); break;
         default: ;
         }
     }
@@ -108,6 +112,8 @@ void ServerManager::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _i
         if (QtMocHelpers::indexOfMethod<void (ServerManager::*)()>(_a, &ServerManager::clientsStatusChanged, 3))
             return;
         if (QtMocHelpers::indexOfMethod<void (ServerManager::*)()>(_a, &ServerManager::StopCracking, 4))
+            return;
+        if (QtMocHelpers::indexOfMethod<void (ServerManager::*)()>(_a, &ServerManager::StartCracking, 5))
             return;
     }
 }
@@ -131,14 +137,14 @@ int ServerManager::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 5)
+        if (_id < 6)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 5;
+        _id -= 6;
     }
     if (_c == QMetaObject::RegisterMethodArgumentMetaType) {
-        if (_id < 5)
+        if (_id < 6)
             *reinterpret_cast<QMetaType *>(_a[0]) = QMetaType();
-        _id -= 5;
+        _id -= 6;
     }
     return _id;
 }
@@ -171,5 +177,11 @@ void ServerManager::clientsStatusChanged()
 void ServerManager::StopCracking()
 {
     QMetaObject::activate(this, &staticMetaObject, 4, nullptr);
+}
+
+// SIGNAL 5
+void ServerManager::StartCracking()
+{
+    QMetaObject::activate(this, &staticMetaObject, 5, nullptr);
 }
 QT_WARNING_POP

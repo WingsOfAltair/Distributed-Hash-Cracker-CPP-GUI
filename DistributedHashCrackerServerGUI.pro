@@ -19,7 +19,8 @@ HEADERS += \
     core/ServerManager.h \
     shared/BaseAsyncLogger.h \
     shared/AsyncLogger.h \
-    shared/AsyncStorageLogger.h
+    shared/AsyncStorageLogger.h \
+    shared/BaseAsyncLogger.h
 
 FORMS += gui/MainWindow.ui
 

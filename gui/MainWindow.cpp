@@ -3,6 +3,8 @@
 #include "ui_MainWindow.h"
 #include <QMessageBox>
 
+bool started = false;
+
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -17,6 +19,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(serverManager, &ServerManager::clientReadyStateChanged, this, &MainWindow::onClientReadyStateChanged);
     connect(serverManager, &ServerManager::logMessage, this, &MainWindow::onLogMessage);
     connect(serverManager, &ServerManager::clientsStatusChanged, this, &MainWindow::RefreshList);
+    connect(serverManager, &ServerManager::StartCracking, this, &MainWindow::TurnOnCracking);
     connect(serverManager, &ServerManager::StopCracking, this, &MainWindow::TurnOffCracking);
 
     ui->comboBoxHashType->addItems({
@@ -61,23 +64,24 @@ void MainWindow::sendHash() {
         return;
     }
 
-    this->ToggleCrackingState(type, hash, salt);
-}
-
-void MainWindow::ToggleCrackingState(QString type, QString hash, QString salt) {
-    QString text = ui->buttonSendHash->text().trimmed();
-    if (text.compare("Stop cracking!", Qt::CaseInsensitive) == 0) {
-        serverManager->StopCrackingClients();
-        ui->buttonSendHash->setText("Send to Clients");
-    } else {
-        ui->buttonSendHash->setText("Stop cracking!");
+    if (!started) {
+        this->TurnOnCracking();
         serverManager->sendHashToClients(type, hash, salt);
-        onLogMessage("Sent hash to clients: " + hash);
+    }
+    else {
+        this->TurnOffCracking();
     }
 }
 
+void MainWindow::TurnOnCracking() {
+    started = true;
+    ui->buttonSendHash->setText("Stop Cracking!");
+}
+
 void MainWindow::TurnOffCracking() {
+    started = false;
     ui->buttonSendHash->setText("Send to Clients");
+    serverManager->StopCrackingClients();
 }
 
 void MainWindow::RefreshList() {
