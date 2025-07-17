@@ -1,3 +1,0 @@
-2025-07-17 17:58:43 Server started on port 1337
-2025-07-17 17:58:45 Receive error: A blocking operation was interrupted by a call to WSACancelBlockingCall
-2025-07-17 17:58:45 Server stopped.
