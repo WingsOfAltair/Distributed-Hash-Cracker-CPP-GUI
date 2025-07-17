@@ -25,6 +25,7 @@ private slots:
     void startServer();
     void stopServer();
     void reloadClients();
+    void checkHashType();
     void sendHash();
     void onClientConnected(const QString&);
     void onClientReadyStateChanged(const QString&, bool);

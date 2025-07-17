@@ -3,6 +3,7 @@
 #include "ui_MainWindow.h"
 #include <QMessageBox>
 #include <QCloseEvent>
+#include <boost/regex.hpp>
 
 bool started = false;
 
@@ -27,6 +28,7 @@ MainWindow::MainWindow(QWidget* parent)
 
     connect(ui->buttonReload, &QPushButton::clicked, this, &MainWindow::reloadClients);
     connect(ui->buttonSendHash, &QPushButton::clicked, this, &MainWindow::sendHash);
+    connect(ui->buttonCheckHashType, &QPushButton::clicked, this, &MainWindow::checkHashType);
 
     connect(serverManager, &ServerManager::clientConnected, this, &MainWindow::onClientConnected);
     connect(serverManager, &ServerManager::clientReadyStateChanged, this, &MainWindow::onClientReadyStateChanged);
@@ -42,6 +44,33 @@ MainWindow::MainWindow(QWidget* parent)
         });
 }
 
+bool isPhpScryptHash(const std::string& hash) {
+    boost::regex scryptPattern(R"(^\d+\$\d+\$\d+\$[A-Za-z0-9./]+\$[A-Za-z0-9./+=]+$)");
+    return boost::regex_match(hash, scryptPattern);
+}
+
+// Check bcrypt hash format
+bool isBcryptHash(const std::string& hash) {
+    boost::regex bcryptPattern(R"(^\$(2[aby])\$\d{2}\$[./A-Za-z0-9]{53}$)");
+    return boost::regex_match(hash, bcryptPattern);
+}
+
+// Determine hash type by length
+std::string getHashType(const std::string& hash) {
+    if (hash.rfind("$argon2id$", 0) == 0) return "Argon2id";
+    if (hash.rfind("$argon2i$", 0) == 0) return "Argon2i";
+    if (hash.rfind("$argon2d$", 0) == 0) return "Argon2d";
+
+    std::map<std::string, size_t> hashTypes = {
+                                               {"MD5", 32}, {"SHA-1 or RIPEMD-160", 40}, {"SHA-224 or SHA3-224", 56},
+                                               {"SHA-256 or SHA3-256", 64}, {"SHA-384 or SHA3-384", 96}, {"SHA-512 or SHA3-512", 128} };
+    size_t hashLength = hash.length();
+    for (const auto& [type, length] : hashTypes) {
+        if (hashLength == length) return type;
+    }
+    return "Unknown hash type";
+}
+
 MainWindow::~MainWindow() {
     delete ui;
 }
@@ -54,6 +83,28 @@ void MainWindow::startServer() {
     }
     serverManager->startServer(port);
     onLogMessage("Server started on port " + QString::number(port));
+}
+
+void MainWindow::checkHashType() {
+    QString hashQString = ui->lineEditHash->text().trimmed();
+    std::string hash = hashQString.toStdString();  // Convert to std::string
+    std::string hashType = getHashType(hash);
+    if (hashType == "Unknown hash type") {
+        bool isBcrypt = isBcryptHash(hash);
+        bool isScrypt = isPhpScryptHash(hash);
+        if (isBcrypt) {
+            ui->textEditLogs->append("Hash Type: BCrypt");
+        }
+        else if (isScrypt) {
+            ui->textEditLogs->append("Hash Type: Scrypt");
+        }
+        else {
+            ui->textEditLogs->append("Unknown hash type.");
+        }
+    }
+    else {
+        ui->textEditLogs->append("Hash Type: " + QString::fromStdString(getHashType(hash)));
+    }
 }
 
 void MainWindow::stopServer() {

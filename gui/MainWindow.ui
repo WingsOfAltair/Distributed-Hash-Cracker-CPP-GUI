@@ -58,6 +58,13 @@
          </property>
         </widget>
        </item>
+       <item row="4" column="1">
+        <widget class="QPushButton" name="buttonCheckHashType">
+         <property name="text">
+          <string>Check Hash Type</string>
+         </property>
+        </widget>
+       </item>
       </layout>
      </widget>
     </item>

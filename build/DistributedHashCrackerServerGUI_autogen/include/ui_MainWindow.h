@@ -39,6 +39,7 @@ public:
     QLabel *labelSalt;
     QLineEdit *lineEditSalt;
     QPushButton *buttonSendHash;
+    QPushButton *checkHashType;
     QGroupBox *groupBoxClients;
     QVBoxLayout *vboxLayout;
     QListWidget *listWidgetClients;
@@ -95,6 +96,11 @@ public:
 
         formLayout->setWidget(3, QFormLayout::ItemRole::FieldRole, buttonSendHash);
 
+        checkHashType = new QPushButton(groupBoxHash);
+        checkHashType->setObjectName("checkHashType");
+
+        formLayout->setWidget(4, QFormLayout::ItemRole::FieldRole, checkHashType);
+
 
         verticalLayout->addWidget(groupBoxHash);
 
@@ -143,6 +149,7 @@ public:
         labelHash->setText(QCoreApplication::translate("MainWindow", "Hash:", nullptr));
         labelSalt->setText(QCoreApplication::translate("MainWindow", "Salt:", nullptr));
         buttonSendHash->setText(QCoreApplication::translate("MainWindow", "Send to Clients", nullptr));
+        checkHashType->setText(QCoreApplication::translate("MainWindow", "Check Hash Type", nullptr));
         groupBoxClients->setTitle(QCoreApplication::translate("MainWindow", "Connected Clients", nullptr));
         buttonReload->setText(QCoreApplication::translate("MainWindow", "Reload Clients", nullptr));
         groupBoxLogs->setTitle(QCoreApplication::translate("MainWindow", "Logs", nullptr));
