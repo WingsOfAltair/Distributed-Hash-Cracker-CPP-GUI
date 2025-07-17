@@ -2,6 +2,7 @@
 #include "ServerManager.h"
 #include <boost/algorithm/string/trim.hpp>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 #include <chrono>
 
@@ -15,35 +16,61 @@ ServerManager::~ServerManager() {
 }
 
 void ServerManager::asyncAcceptClient() {
-    if (!acceptor || !acceptor->is_open()) return;
-
     auto socket = std::make_shared<boost::asio::ip::tcp::socket>(*ioContext);
+
     acceptor->async_accept(*socket, [this, socket](const boost::system::error_code& ec) {
-        if (!serverRunning || ec == boost::asio::error::operation_aborted) return;
+        if (!serverRunning || ec == boost::asio::error::operation_aborted)
+            return;
+
         if (!ec) {
-            handleClient(socket);  // Or defer to a thread-safe queue if needed
+            handleClient(socket);
         } else {
             emit logMessage("Accept error: " + QString::fromStdString(ec.message()));
         }
-        asyncAcceptClient();  // loop again
+
+        // Start accepting the next client immediately
+        asyncAcceptClient();
     });
 }
 
-void ServerManager::asyncUdpReceive() {
-    if (!udpSocket || !udpSocket->is_open()) return;
+void ServerManager::udpEchoServer() {
+    // Already initialized in startServer()
+    if (!udpSocket || !udpSocket->is_open()) {
+        emit logMessage("UDP socket is not open.");
+        return;
+    }
 
-    udpSocketBuffer.resize(128);
-    udpSocket->async_receive_from(
-        boost::asio::buffer(udpSocketBuffer), udpSender,
-        [this](const boost::system::error_code& ec, std::size_t bytes_recvd) {
-            if (!serverRunning || ec == boost::asio::error::operation_aborted) return;
-            if (!ec && bytes_recvd > 0) {
-                std::string response = "pong";
-                udpSocket->async_send_to(boost::asio::buffer(response), udpSender,
-                                         [](const boost::system::error_code&, std::size_t) {});
-            }
-            asyncUdpReceive();  // loop again
-        });
+    char data[128];  // buffer for incoming data
+    boost::asio::ip::udp::endpoint sender_endpoint;
+
+    std::cout << "Ping echo server is listening on port " << serverPort << " UDP..." << std::endl;
+
+    while (serverRunning) {
+        boost::system::error_code ec;
+
+        std::size_t length = udpSocket->receive_from(
+            boost::asio::buffer(data), sender_endpoint, 0, ec
+            );
+
+        if (ec && ec != boost::asio::error::message_size) {
+            emit logMessage("Receive error: " + QString::fromStdString(ec.message()));
+            continue;
+        }
+
+        emit logMessage("Received: " +
+                        QString::fromStdString(std::string(data, length)) +
+                        " from " +
+                        QString::fromStdString(sender_endpoint.address().to_string()) +
+                        ":" +
+                        QString::number(sender_endpoint.port()));
+
+        // Send response
+        std::string response = "pong";
+        udpSocket->send_to(boost::asio::buffer(response), sender_endpoint, 0, ec);
+        if (ec) {
+            emit logMessage("Send error: " + QString::fromStdString(ec.message()));
+        }
+    }
 }
 
 void ServerManager::startServer(int port) {
@@ -60,8 +87,13 @@ void ServerManager::startServer(int port) {
     udpSocket = std::make_unique<boost::asio::ip::udp::socket>(
         *ioContext, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port));
 
-    asyncAcceptClient();     // Start async accept loop
-    asyncUdpReceive();       // Start async UDP receive loop
+    std::thread([this]() {
+        udpEchoServer();
+    }).detach();
+
+    std::thread([this]() {
+        asyncAcceptClient();
+    }).detach();
 
     serverThreads.emplace_back([this]() {
         try {
@@ -190,21 +222,6 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
 
 std::unordered_map<std::string, bool> ServerManager::getConnectedClientsStatus() {
     return clientsReady;
-}
-
-void ServerManager::udpEchoServer() {
-    char data[128];
-    boost::asio::ip::udp::endpoint sender;
-
-    while (serverRunning) {
-        boost::system::error_code ec;
-        size_t len = udpSocket->receive_from(boost::asio::buffer(data), sender, 0, ec);
-        if (!ec) {
-            std::string received(data, len);
-            std::string response = "pong";
-            udpSocket->send_to(boost::asio::buffer(response), sender);
-        }
-    }
 }
 
 void ServerManager::sendHashToClients(const QString& hashType, const QString& hash, const QString& salt) {

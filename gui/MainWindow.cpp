@@ -81,17 +81,11 @@ void MainWindow::RefreshList() {
 }
 
 void MainWindow::onClientConnected(const QString& clientId) {
-    ui->listWidgetClients->addItem(clientId + " [Not Ready]");
+    this->RefreshList();
 }
 
 void MainWindow::onClientReadyStateChanged(const QString& clientId, bool isReady) {
-    for (int i = 0; i < ui->listWidgetClients->count(); ++i) {
-        QListWidgetItem* item = ui->listWidgetClients->item(i);
-        if (item->text().startsWith(clientId)) {
-            item->setText(clientId + (isReady ? " [Ready]" : " [Not Ready]"));
-            break;
-        }
-    }
+    this->RefreshList();
 }
 
 void MainWindow::onLogMessage(const QString& msg) {
