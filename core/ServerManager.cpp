@@ -23,7 +23,7 @@ void ServerManager::asyncAcceptClient() {
             return;
 
         if (!ec) {
-            handleClient(socket);
+            std::thread(&ServerManager::handleClient, this, socket).detach();
         } else {
             emit logMessage("Accept error: " + QString::fromStdString(ec.message()));
         }
@@ -244,6 +244,8 @@ void ServerManager::notifyClients() {
             try {
                 boost::asio::write(*socket, boost::asio::buffer(msg));
                 clientsReady[id] = false;
+
+                emit clientsStatusChanged();
             }
             catch (...) {
                 emit logMessage("Failed to notify client: " + QString::fromStdString(id));
@@ -254,13 +256,15 @@ void ServerManager::notifyClients() {
 
 void ServerManager::notifyStopAll() {
     std::lock_guard<std::mutex> lock(clientsMutex);
-    for (auto& [id, socket] : clients) {
-        if (socket && socket->is_open()) {
-            try {
-                boost::asio::write(*socket, boost::asio::buffer("STOP\n"));
-            }
-            catch (...) {
-                emit logMessage("Failed to send STOP to client: " + QString::fromStdString(id));
+    for (const auto& [client_id, is_ready] : clientsReady) {
+        if (!is_ready) {
+            auto it = clients.find(client_id);
+            if (it != clients.end() && it->second && it->second->is_open()) {
+                try {
+                    boost::asio::write(*it->second, boost::asio::buffer("STOP\n"));
+                } catch (const boost::system::system_error& e) {
+                    std::cerr << "Failed to send reload to client " << client_id << ": " << e.what() << "\n";
+                }
             }
         }
     }
