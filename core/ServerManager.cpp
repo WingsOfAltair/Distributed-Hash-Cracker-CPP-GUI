@@ -33,6 +33,10 @@ void ServerManager::asyncAcceptClient() {
     });
 }
 
+void ServerManager::StopCrackingClients() {
+    this->notifyStopAll();
+}
+
 void ServerManager::udpEchoServer() {
     // Already initialized in startServer()
     if (!udpSocket || !udpSocket->is_open()) {
@@ -204,7 +208,7 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
                 currentPassword = QString::fromStdString(message.substr(6)).split(' ').first();
                 crackedHashes.emplace_back(currentHash, currentSalt, currentPassword);
                 emit logMessage("Match from " + QString::fromStdString(clientId) + ": " + currentPassword);
-                notifyStopAll();
+                this->StopCrackingClients();
             }
         }
     }
@@ -231,6 +235,26 @@ void ServerManager::sendHashToClients(const QString& hashType, const QString& ha
     matchFound = false;
     clientsResponded = 0;
     notifyClients();
+
+    /*bool found = false;
+    for (const auto& [stored_hash, stored_salt, decoded] : cracked_hashes_storage) {
+        if (stored_hash == hash && stored_salt == salt) {
+            std::cout << "Found pre-cracked Hash: " << stored_hash
+                      << " Salt: " << stored_salt
+                      << " Decoded: " << decoded << std::endl;
+
+            logger.log("Found pre-cracked Hash: " + stored_hash +
+                       " Salt: " + stored_salt +
+                       " Decoded: " + decoded);
+
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        notifyClients();
+    }*/
 }
 
 void ServerManager::notifyClients() {
@@ -255,6 +279,8 @@ void ServerManager::notifyClients() {
 }
 
 void ServerManager::notifyStopAll() {
+    emit StopCracking();
+
     std::lock_guard<std::mutex> lock(clientsMutex);
     for (const auto& [client_id, is_ready] : clientsReady) {
         if (!is_ready) {

@@ -17,6 +17,7 @@ MainWindow::MainWindow(QWidget* parent)
     connect(serverManager, &ServerManager::clientReadyStateChanged, this, &MainWindow::onClientReadyStateChanged);
     connect(serverManager, &ServerManager::logMessage, this, &MainWindow::onLogMessage);
     connect(serverManager, &ServerManager::clientsStatusChanged, this, &MainWindow::RefreshList);
+    connect(serverManager, &ServerManager::StopCracking, this, &MainWindow::TurnOffCracking);
 
     ui->comboBoxHashType->addItems({
         "bcrypt", "scrypt", "argon2",
@@ -60,8 +61,23 @@ void MainWindow::sendHash() {
         return;
     }
 
-    serverManager->sendHashToClients(type, hash, salt);
-    onLogMessage("Sent hash to clients: " + hash);
+    this->ToggleCrackingState(type, hash, salt);
+}
+
+void MainWindow::ToggleCrackingState(QString type, QString hash, QString salt) {
+    QString text = ui->buttonSendHash->text().trimmed();
+    if (text.compare("Stop cracking!", Qt::CaseInsensitive) == 0) {
+        serverManager->StopCrackingClients();
+        ui->buttonSendHash->setText("Send to Clients");
+    } else {
+        ui->buttonSendHash->setText("Stop cracking!");
+        serverManager->sendHashToClients(type, hash, salt);
+        onLogMessage("Sent hash to clients: " + hash);
+    }
+}
+
+void MainWindow::TurnOffCracking() {
+    ui->buttonSendHash->setText("Send to Clients");
 }
 
 void MainWindow::RefreshList() {

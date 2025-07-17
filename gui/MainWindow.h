@@ -27,6 +27,8 @@ private slots:
     void onClientReadyStateChanged(const QString&, bool);
     void onLogMessage(const QString&);
     void RefreshList();
+    void ToggleCrackingState(QString type, QString hash, QString salt);
+    void TurnOffCracking();
 
 private:
     Ui::MainWindow* ui;

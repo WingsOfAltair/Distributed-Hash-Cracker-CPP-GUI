@@ -25,6 +25,7 @@ public:
     void reloadClients();
     void asyncAcceptClient();
     void asyncUdpReceive();
+    void StopCrackingClients();
     std::unordered_map<std::string, bool> getConnectedClientsStatus();
 
     std::vector<char> udpSocketBuffer;
@@ -36,6 +37,7 @@ signals:
     void clientReadyStateChanged(const QString& clientId, bool isReady);
     void logMessage(const QString& message);
     void clientsStatusChanged();
+    void StopCracking();
 
 private:
     std::unique_ptr<boost::asio::io_context> ioContext;
