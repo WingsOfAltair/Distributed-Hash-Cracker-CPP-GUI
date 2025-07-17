@@ -14,6 +14,9 @@ QT_END_NAMESPACE
 class MainWindow : public QMainWindow {
     Q_OBJECT
 
+protected:
+    void closeEvent(QCloseEvent* event) override;
+
 public:
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow();

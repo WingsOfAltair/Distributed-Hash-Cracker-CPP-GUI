@@ -2,8 +2,21 @@
 #include "MainWindow.h"
 #include "ui_MainWindow.h"
 #include <QMessageBox>
+#include <QCloseEvent>
 
 bool started = false;
+
+void MainWindow::closeEvent(QCloseEvent* event) {
+    // Optionally ask user for confirmation or do cleanup here
+    // e.g. stop your server properly before exiting
+
+    this->stopServer();
+
+    event->accept();  // accept close event to let window close
+
+    // Or call QApplication::quit() if you want to quit immediately:
+    // QApplication::quit();
+}
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
@@ -82,6 +95,7 @@ void MainWindow::TurnOffCracking() {
     started = false;
     ui->buttonSendHash->setText("Send to Clients");
     serverManager->StopCrackingClients();
+    ui->textEditLogs->append("Sent stop command to clients.");
 }
 
 void MainWindow::RefreshList() {

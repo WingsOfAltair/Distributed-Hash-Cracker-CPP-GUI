@@ -293,6 +293,7 @@ void ServerManager::notifyClients() {
     if (!currentSalt.isEmpty()) msg += ":" + currentSalt.toStdString();
     msg += "\n";
 
+    emit logMessage("Processing entered hash, please wait...");
     std::lock_guard<std::mutex> lock(clientsMutex);
     for (auto& [id, socket] : clients) {
         if (clientsReady[id] && socket && socket->is_open()) {

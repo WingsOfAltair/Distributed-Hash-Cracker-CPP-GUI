@@ -124,7 +124,7 @@ include_directories(
     ${OPENSSL_INCLUDE_DIR}
 )
 
-qt_add_executable(DistributedHashCrackerServerGUI
+qt_add_executable(DistributedHashCrackerServerGUI WIN32
     ${SOURCES}
     ${UIS_HDRS}
 )

@@ -1,0 +1,5 @@
+set(__QT_DEPLOY_TARGET_scrypt_FILE D:/GitHub/Distributed-Hash-Cracker-CPP-GUI/build/scrypt.lib)
+set(__QT_DEPLOY_TARGET_scrypt_TYPE STATIC_LIBRARY)
+set(__QT_DEPLOY_TARGET_DistributedHashCrackerServerGUI_FILE D:/GitHub/Distributed-Hash-Cracker-CPP-GUI/build/DistributedHashCrackerServerGUI.exe)
+set(__QT_DEPLOY_TARGET_DistributedHashCrackerServerGUI_TYPE EXECUTABLE)
+set(__QT_DEPLOY_TARGET_DistributedHashCrackerServerGUI_RUNTIME_DLLS C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgets.dll;C:/Qt/6.9.1/msvc2022_64/bin/Qt6Gui.dll;C:/Qt/6.9.1/msvc2022_64/bin/Qt6Core.dll)
