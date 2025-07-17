@@ -23,11 +23,19 @@ public:
     void stopServer();
     void sendHashToClients(const QString& hashType, const QString& hash, const QString& salt);
     void reloadClients();
+    void asyncAcceptClient();
+    void asyncUdpReceive();
+    std::unordered_map<std::string, bool> getConnectedClientsStatus();
+
+    std::vector<char> udpSocketBuffer;
+    boost::asio::ip::udp::endpoint udpSender;
+    std::optional<boost::asio::executor_work_guard<boost::asio::io_context::executor_type>> workGuard;
 
 signals:
     void clientConnected(const QString& clientId);
     void clientReadyStateChanged(const QString& clientId, bool isReady);
     void logMessage(const QString& message);
+    void clientsStatusChanged();
 
 private:
     std::unique_ptr<boost::asio::io_context> ioContext;

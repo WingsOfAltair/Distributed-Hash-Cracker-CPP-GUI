@@ -5,28 +5,71 @@
 #include <sstream>
 #include <chrono>
 
-using boost::asio::ip::tcp;
-using boost::asio::ip::udp;
-
 ServerManager::ServerManager(QObject* parent) : QObject(parent) {
     readCrackedHashes("cracked.txt");
+    startServer(1337);
 }
 
 ServerManager::~ServerManager() {
-    stopServer();
+    //stopServer();
+}
+
+void ServerManager::asyncAcceptClient() {
+    if (!acceptor || !acceptor->is_open()) return;
+
+    auto socket = std::make_shared<boost::asio::ip::tcp::socket>(*ioContext);
+    acceptor->async_accept(*socket, [this, socket](const boost::system::error_code& ec) {
+        if (!serverRunning || ec == boost::asio::error::operation_aborted) return;
+        if (!ec) {
+            handleClient(socket);  // Or defer to a thread-safe queue if needed
+        } else {
+            emit logMessage("Accept error: " + QString::fromStdString(ec.message()));
+        }
+        asyncAcceptClient();  // loop again
+    });
+}
+
+void ServerManager::asyncUdpReceive() {
+    if (!udpSocket || !udpSocket->is_open()) return;
+
+    udpSocketBuffer.resize(128);
+    udpSocket->async_receive_from(
+        boost::asio::buffer(udpSocketBuffer), udpSender,
+        [this](const boost::system::error_code& ec, std::size_t bytes_recvd) {
+            if (!serverRunning || ec == boost::asio::error::operation_aborted) return;
+            if (!ec && bytes_recvd > 0) {
+                std::string response = "pong";
+                udpSocket->async_send_to(boost::asio::buffer(response), udpSender,
+                                         [](const boost::system::error_code&, std::size_t) {});
+            }
+            asyncUdpReceive();  // loop again
+        });
 }
 
 void ServerManager::startServer(int port) {
     if (serverRunning) return;
     serverRunning = true;
     serverPort = port;
-    ioContext = std::make_unique<boost::asio::io_context>();
-    acceptor = std::make_unique<tcp::acceptor>(*ioContext, tcp::endpoint(tcp::v4(), port));
-    udpSocket = std::make_unique<boost::asio::ip::udp::socket>(*ioContext, udp::endpoint(udp::v4(), port));
 
-    serverThreads.emplace_back([this]() { this->acceptClients(); });
-    serverThreads.emplace_back([this]() { this->udpEchoServer(); });
-    serverThreads.emplace_back([this]() { ioContext->run(); });
+    ioContext = std::make_unique<boost::asio::io_context>();
+    workGuard.emplace(boost::asio::make_work_guard(*ioContext));
+
+    acceptor = std::make_unique<boost::asio::ip::tcp::acceptor>(
+        *ioContext, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port));
+
+    udpSocket = std::make_unique<boost::asio::ip::udp::socket>(
+        *ioContext, boost::asio::ip::udp::endpoint(boost::asio::ip::udp::v4(), port));
+
+    asyncAcceptClient();     // Start async accept loop
+    asyncUdpReceive();       // Start async UDP receive loop
+
+    serverThreads.emplace_back([this]() {
+        try {
+            ioContext->run();  // 🧵 Blocking run loop
+        } catch (const std::exception& ex) {
+            emit logMessage("io_context exception: " + QString::fromStdString(ex.what()));
+        }
+    });
 
     emit logMessage("Server started on port " + QString::number(port));
 }
@@ -35,10 +78,34 @@ void ServerManager::stopServer() {
     if (!serverRunning) return;
     serverRunning = false;
 
-    if (ioContext) ioContext->stop();
-    for (auto& thread : serverThreads) {
-        if (thread.joinable()) thread.join();
+    // Cancel async ops
+    if (acceptor && acceptor->is_open()) {
+        boost::system::error_code ec;
+        acceptor->cancel(ec);
+        acceptor->close(ec);
     }
+
+    if (udpSocket && udpSocket->is_open()) {
+        boost::system::error_code ec;
+        udpSocket->cancel(ec);
+        udpSocket->close(ec);
+    }
+
+    // Allow io_context to stop once all work is done
+    if (workGuard.has_value()) {
+        workGuard.reset();
+    }
+
+    if (ioContext) {
+        ioContext->stop();
+    }
+
+    for (auto& thread : serverThreads) {
+        if (thread.joinable() && thread.get_id() != boost::this_thread::get_id()) {
+            thread.join();
+        }
+    }
+
     serverThreads.clear();
     clients.clear();
     clientsReady.clear();
@@ -62,7 +129,7 @@ void ServerManager::readCrackedHashes(const QString& file) {
 void ServerManager::acceptClients() {
     while (serverRunning) {
         try {
-            auto socket = std::make_shared<tcp::socket>(*ioContext);
+            auto socket = std::make_shared<boost::asio::ip::tcp::socket>(*ioContext);
             acceptor->accept(*socket);
             serverThreads.emplace_back([this, socket]() { handleClient(socket); });
         }
@@ -70,7 +137,7 @@ void ServerManager::acceptClients() {
     }
 }
 
-void ServerManager::handleClient(std::shared_ptr<tcp::socket> socket) {
+void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> socket) {
     std::string clientId = socket->remote_endpoint().address().to_string() + ":" + std::to_string(socket->remote_endpoint().port());
 
     {
@@ -82,6 +149,7 @@ void ServerManager::handleClient(std::shared_ptr<tcp::socket> socket) {
 
     emit clientConnected(QString::fromStdString(clientId));
     emit logMessage("Client connected: " + QString::fromStdString(clientId));
+    emit clientsStatusChanged();
 
     try {
         boost::asio::streambuf buffer;
@@ -92,11 +160,12 @@ void ServerManager::handleClient(std::shared_ptr<tcp::socket> socket) {
             std::getline(is, message);
             boost::algorithm::trim(message);
 
-            if (message == "Ready") {
+            if (message.find("Ready") == 0) {
                 clientsMutex.lock();
                 clientsReady[clientId] = true;
                 clientsMutex.unlock();
                 emit clientReadyStateChanged(QString::fromStdString(clientId), true);
+                emit clientsStatusChanged();
             }
             else if (message.find("MATCH:") == 0) {
                 matchFound = true;
@@ -109,17 +178,23 @@ void ServerManager::handleClient(std::shared_ptr<tcp::socket> socket) {
     }
     catch (...) {
         emit logMessage("Client disconnected: " + QString::fromStdString(clientId));
-    }
 
-    std::lock_guard<std::mutex> lock(clientsMutex);
-    clients.erase(clientId);
-    clientsReady.erase(clientId);
-    --totalClients;
+        std::lock_guard<std::mutex> lock(clientsMutex);
+        clients.erase(clientId);
+        clientsReady.erase(clientId);
+        --totalClients;
+
+        emit clientsStatusChanged();
+    }
+}
+
+std::unordered_map<std::string, bool> ServerManager::getConnectedClientsStatus() {
+    return clientsReady;
 }
 
 void ServerManager::udpEchoServer() {
     char data[128];
-    udp::endpoint sender;
+    boost::asio::ip::udp::endpoint sender;
 
     while (serverRunning) {
         boost::system::error_code ec;

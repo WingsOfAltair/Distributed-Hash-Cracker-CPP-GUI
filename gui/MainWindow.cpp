@@ -10,14 +10,13 @@ MainWindow::MainWindow(QWidget* parent)
 {
     ui->setupUi(this);
 
-    connect(ui->buttonStart, &QPushButton::clicked, this, &MainWindow::startServer);
-    connect(ui->buttonStop, &QPushButton::clicked, this, &MainWindow::stopServer);
     connect(ui->buttonReload, &QPushButton::clicked, this, &MainWindow::reloadClients);
     connect(ui->buttonSendHash, &QPushButton::clicked, this, &MainWindow::sendHash);
 
     connect(serverManager, &ServerManager::clientConnected, this, &MainWindow::onClientConnected);
     connect(serverManager, &ServerManager::clientReadyStateChanged, this, &MainWindow::onClientReadyStateChanged);
     connect(serverManager, &ServerManager::logMessage, this, &MainWindow::onLogMessage);
+    connect(serverManager, &ServerManager::clientsStatusChanged, this, &MainWindow::RefreshList);
 
     ui->comboBoxHashType->addItems({
         "bcrypt", "scrypt", "argon2",
@@ -31,9 +30,8 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::startServer() {
-    bool ok;
-    int port = ui->lineEditPort->text().toInt(&ok);
-    if (!ok || port <= 0 || port > 65535) {
+    int port = 1337;
+    if (port <= 0 || port > 65535) {
         QMessageBox::warning(this, "Invalid Port", "Please enter a valid port number.");
         return;
     }
@@ -64,6 +62,22 @@ void MainWindow::sendHash() {
 
     serverManager->sendHashToClients(type, hash, salt);
     onLogMessage("Sent hash to clients: " + hash);
+}
+
+void MainWindow::RefreshList() {
+    ui->listWidgetClients->clear();
+
+    std::unordered_map<std::string, bool> connectedClients = serverManager->getConnectedClientsStatus();
+
+    // Re-add all clients
+    for (const auto& [clientIdStd, ready] : connectedClients) {
+        QString clientId = QString::fromStdString(clientIdStd);
+        if (ready) {
+            ui->listWidgetClients->addItem(clientId + " [Ready]");
+        } else {
+            ui->listWidgetClients->addItem(clientId + " [Not Ready]");
+        }
+    }
 }
 
 void MainWindow::onClientConnected(const QString& clientId) {

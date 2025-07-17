@@ -26,6 +26,7 @@ private slots:
     void onClientConnected(const QString&);
     void onClientReadyStateChanged(const QString&, bool);
     void onLogMessage(const QString&);
+    void RefreshList();
 
 private:
     Ui::MainWindow* ui;
