@@ -12,6 +12,9 @@ AsyncStorageLogger crackedLogger("cracked.txt");
 
 int SERVER_PORT = 0;
 
+auto start = std::chrono::high_resolution_clock::now();
+auto end = std::chrono::high_resolution_clock::now();
+
 // Read config file
 std::map<std::string, std::string> readConfig(const std::string& filename) {
     std::map<std::string, std::string> configMap;
@@ -39,9 +42,9 @@ std::map<std::string, std::string> readConfig(const std::string& filename) {
 
 ServerManager::ServerManager(QObject* parent) : QObject(parent) {
     readCrackedHashes("cracked.txt");
-    auto config = readConfig("server.ini");
-    SERVER_PORT = std::stoi(config["SERVER_PORT"]);
-    startServer(SERVER_PORT);
+    //auto config = readConfig("server.ini");
+    //SERVER_PORT = std::stoi(config["SERVER_PORT"]);
+    startServer(1337);
 }
 
 ServerManager::~ServerManager() {
@@ -226,6 +229,7 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
         clients[clientId] = socket;
         clientsReady[clientId] = false;
         ++totalClients;
+        emit clientsStatusChanged();
     }
 
     emit clientConnected(QString::fromStdString(clientId));
@@ -250,6 +254,11 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
                 emit clientsStatusChanged();
             }
             else if (message.find("MATCH:") == 0) {
+                auto end = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double, std::milli> duration_ms = end - start;
+
+                std::string match_info = message.substr(6); // Remove "MATCH:"
+                logServer("Match: " + match_info + " by Client " + clientId + " Elapsed time: " + std::to_string(duration_ms.count()) + " ms.");
                 matchFound = true;
                 currentPassword = QString::fromStdString(message.substr(6)).split(' ').first();
                 bool found = false;
@@ -264,8 +273,9 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
                     crackedLogger.log(currentHash.toStdString() + ":" + currentSalt.toStdString() + ":" + currentPassword.toStdString());
                 }
                 emit logMessage("Match from " + QString::fromStdString(clientId) + ": " + currentPassword);
-                logServer(std::string("Match from ") + clientId + ": " + currentPassword.toStdString());
-                emit StopCracking();
+                emit logMessage("Match: " + QString::fromStdString(match_info) +
+                                " by Client " + QString::fromStdString(clientId) +
+                                " Elapsed time: " + QString::number(duration_ms.count(), 'f', 3) + " ms.");
                 this->StopCrackingClients();
             }
         }
@@ -288,6 +298,7 @@ std::unordered_map<std::string, bool> ServerManager::getConnectedClientsStatus()
 }
 
 void ServerManager::sendHashToClients(const QString& hashType, const QString& hash, const QString& salt) {
+    start = std::chrono::high_resolution_clock::now();
     currentHashType = hashType;
     currentHash = hash;
     currentSalt = salt;
