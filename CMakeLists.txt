@@ -9,6 +9,17 @@ project(DistributedHashCrackerServerGUI LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+if(WIN32)
+# Set Qt path (same effect as -DCMAKE_PREFIX_PATH=...)
+set(CMAKE_PREFIX_PATH "C:/Qt/6.9.1/msvc2022_64" CACHE PATH "Qt installation prefix path")
+endif()
+
+if(WIN32)
+# Libsodium integration
+set(SODIUM_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/include/scrypt")
+set(SODIUM_LIBRARIES "${PROJECT_SOURCE_DIR}/include/scrypt/libsodium.lib")
+endif()
+
 # Find libsodium using pkg-config (only on UNIX)
 if(UNIX)
     find_package(PkgConfig REQUIRED)
@@ -73,45 +84,54 @@ if(WIN32)
 endif()
 
 # ------------------------------
-# Build scrypt static library from source files
+# Client executable
 # ------------------------------
-file(GLOB_RECURSE SCRYPT_SRC
-    ${CMAKE_SOURCE_DIR}/include/scrypt/*.c
+add_executable(DistributedHashCrackerClient 
+    Distributed-Hash-Cracker-CPP-Client/Distributed-Hash-Cracker-CPP-Client.cpp
 )
 
-# Exclude ARM and X86-specific files that break build on non-ARM systems
-foreach(cpu_file ${SCRYPT_SRC})
-    if(cpu_file MATCHES ".*(ARM|X86|RDRAND).*\\.c$")
-        message(STATUS "Excluding CPU-specific file: ${cpu_file}")
-        list(REMOVE_ITEM SCRYPT_SRC ${cpu_file})
-    endif()
-endforeach()
+target_compile_definitions(DistributedHashCrackerClient PRIVATE SODIUM_STATIC)
 
-add_library(scrypt STATIC ${SCRYPT_SRC})
-
-target_compile_definitions(scrypt PUBLIC HAVE_CONFIG_H)
-
-target_include_directories(scrypt PUBLIC
-    ${CMAKE_SOURCE_DIR}/include/scrypt   
-    ${CMAKE_SOURCE_DIR}/include/scrypt/lib-platform/crypto
-    ${CMAKE_SOURCE_DIR}/include/scrypt/lib-platform/util
-    ${CMAKE_SOURCE_DIR}/include/scrypt/lib-platform   
-    ${CMAKE_SOURCE_DIR}/include/scrypt/libcperciva       
-    ${CMAKE_SOURCE_DIR}/include/scrypt/libcperciva/alg   
-    ${CMAKE_SOURCE_DIR}/include/scrypt/libcperciva/cpusupport   
-    ${CMAKE_SOURCE_DIR}/include/scrypt/libcperciva/crypto     
-    ${CMAKE_SOURCE_DIR}/include/scrypt/libcperciva/POSIX
-    ${CMAKE_SOURCE_DIR}/include/scrypt/libcperciva/util
-    ${CMAKE_SOURCE_DIR}/include/scrypt/lib
+target_include_directories(DistributedHashCrackerClient PRIVATE
+    ${CMAKE_SOURCE_DIR}/include
 )
 
-# Ensure warnp.c is included
-list(APPEND SCRYPT_SRC
-    ${CMAKE_SOURCE_DIR}/include/scrypt/libcperciva/util/warnp.c
+if (WIN32)
+target_link_libraries(DistributedHashCrackerClient PRIVATE 
+    ${Boost_LIBRARIES}
+    OpenSSL::SSL
+    OpenSSL::Crypto
+    "${BCRYPT_LIB_PATH}"
+    "${ARGON2_LIB_PATH}"  
+    ${SODIUM_LIBRARIES}  
 )
+else()
+target_link_libraries(DistributedHashCrackerClient PRIVATE 
+    ${Boost_LIBRARIES}
+    OpenSSL::SSL
+    OpenSSL::Crypto
+    bcrypt
+    argon2
+    crypt      
+    ${SODIUM_LIBRARIES}
+)
+endif()
 
 # ------------------------------
-# Server executable
+# Server CLI executable
+# ------------------------------
+add_executable(DistributedHashCrackerServer 
+    Distributed-Hash-Cracker-CPP/Distributed-Hash-Cracker-CPP-Server.cpp
+)
+
+target_link_libraries(DistributedHashCrackerServer PRIVATE 
+    ${Boost_LIBRARIES}
+    OpenSSL::SSL
+    OpenSSL::Crypto
+)
+
+# ------------------------------
+# Server GUI executable
 # ------------------------------
 
 include_directories(
@@ -166,9 +186,16 @@ if(WIN32)
             "C:/boost/lib64-msvc-14.3/boost_thread-vc143-mt-gd-x64-1_85.dll"
             "C:/boost/lib64-msvc-14.3/boost_filesystem-vc143-mt-gd-x64-1_85.dll"
             "C:/boost/lib64-msvc-14.3/boost_locale-vc143-mt-gd-x64-1_85.dll"
+
+            "C:/boost/lib64-msvc-14.3/boost_thread-vc143-mt-x64-1_85.dll"
+            "C:/boost/lib64-msvc-14.3/boost_filesystem-vc143-mt-x64-1_85.dll"
+            "C:/boost/lib64-msvc-14.3/boost_locale-vc143-mt-x64-1_85.dll"
         )
     else()
         set(BOOST_DLLS
+            "C:/boost/lib64-msvc-14.3/boost_thread-vc143-mt-gd-x64-1_85.dll"
+            "C:/boost/lib64-msvc-14.3/boost_filesystem-vc143-mt-gd-x64-1_85.dll"
+            "C:/boost/lib64-msvc-14.3/boost_locale-vc143-mt-gd-x64-1_85.dll"
             "C:/boost/lib64-msvc-14.3/boost_thread-vc143-mt-x64-1_85.dll"
             "C:/boost/lib64-msvc-14.3/boost_filesystem-vc143-mt-x64-1_85.dll"
             "C:/boost/lib64-msvc-14.3/boost_locale-vc143-mt-x64-1_85.dll"
@@ -191,26 +218,32 @@ if(WIN32)
             "${QT_PLUGINS_PLATFORM_DIR}/qwindows.dll"
             "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
     )
-endif()
 
-if(WIN32)
     set(QT_DLLS
         "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgetsd.dll"
         "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Guid.dll"
         "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Cored.dll"
+        "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgets.dll"
+        "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Gui.dll"
+        "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Core.dll"
     )
     if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(QT_DLLS
             "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgetsd.dll"
             "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Guid.dll"
             "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Cored.dll"
-
+            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgets.dll"
+            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Gui.dll"
+            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Core.dll"
         )
     else()
         set(QT_DLLS
             "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgets.dll"
             "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Gui.dll"
             "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Core.dll"
+            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgetsd.dll"
+            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Guid.dll"
+            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Cored.dll"
         )
     endif()
 
@@ -221,10 +254,28 @@ if(WIN32)
                 $<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>
         )
     endforeach()
+
+    add_custom_command(TARGET DistributedHashCrackerClient POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/include/argon2/argon2.dll"
+            "$<TARGET_FILE_DIR:DistributedHashCrackerClient>"
+    )             
+    add_custom_command(TARGET DistributedHashCrackerClient POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_SOURCE_DIR}/include/scrypt/libsodium.dll"
+            "$<TARGET_FILE_DIR:DistributedHashCrackerClient>"
+    )
+
 endif()
 
-add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        "${CMAKE_SOURCE_DIR}/resources/server.ini"
-        $<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/server.ini
-)
+set(CONFIG_SRC_DIR "${CMAKE_SOURCE_DIR}/resources")
+set(CONFIG_FILES config.ini server.ini wordlist.txt mutation_list.txt mutation_list_generator_upto_n_times.py)
+
+foreach(FILE ${CONFIG_FILES})
+    foreach(target DistributedHashCrackerClient DistributedHashCrackerServerGUI)
+        add_custom_command(TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CONFIG_SRC_DIR}/${FILE}" $<TARGET_FILE_DIR:${target}>
+        )
+    endforeach()
+endforeach()

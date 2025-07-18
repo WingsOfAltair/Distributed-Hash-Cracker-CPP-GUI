@@ -1,0 +1,21 @@
+# If mutator rules list is empty, mutation are disabled.
+# However, if it is enabled, it will attempt to mutate
+# each word depending on the rule.
+
+# normal = plain password without mutation.
+# l = lowercase
+# u = uppercase
+# r = reverse
+# c = capitalize first letter
+# t = toggle case
+# d = duplicate
+# s = substitute sXY
+# n = append numbers
+# 1 = prepends !
+# 2 = postpends !
+# 3 = prepends @
+# 4 = postpends @
+# 5 = replaces @ with 4
+# p = l33tsp3@k
+
+MUTATION_RULES=normal
