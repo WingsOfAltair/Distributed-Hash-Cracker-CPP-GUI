@@ -253,6 +253,43 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
                 emit clientReadyStateChanged(QString::fromStdString(clientId), true);
                 emit clientsStatusChanged();
             }
+            else if (message.find("NO_MATCH") == 0) {
+                clientsMutex.lock();
+                clientsReady[clientId] = true;
+                clientsMutex.unlock();
+
+                std::lock_guard<std::mutex> lock(clientsMutex);
+
+                // Check if all clients are ready
+                bool allReady = std::all_of(clientsReady.begin(), clientsReady.end(),
+                                            [](const auto& pair) {
+                                                return pair.second; // second = is_ready
+                                            });
+
+                emit clientReadyStateChanged(QString::fromStdString(clientId), true);
+                emit clientsStatusChanged();
+
+                if (allReady) {
+                    // All clients are ready, do something
+                    for (const auto& [client_id, _] : clientsReady) {
+                        auto it = clients.find(client_id);
+                        if (it != clients.end() && it->second && it->second->is_open()) {
+                            try {
+                                emit StopCracking();
+                            } catch (const boost::system::system_error& e) {
+                                std::cerr << "Failed to send STOP cracking on client id " << client_id << ": " << e.what() << "\n";
+                            }
+                        }
+                    }
+                }
+
+                auto end = std::chrono::high_resolution_clock::now();
+                std::chrono::duration<double, std::milli> duration_ms = end - start;
+
+                emit logMessage("Match was not found" \
+                                " by Client " + QString::fromStdString(clientId) +
+                                " Elapsed time: " + QString::number(duration_ms.count(), 'f', 3) + " ms.");
+            }
             else if (message.find("MATCH:") == 0) {
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double, std::milli> duration_ms = end - start;
@@ -272,7 +309,6 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
                     crackedHashes.emplace_back(currentHash, currentSalt, currentPassword);
                     crackedLogger.log(currentHash.toStdString() + ":" + currentSalt.toStdString() + ":" + currentPassword.toStdString());
                 }
-                emit logMessage("Match from " + QString::fromStdString(clientId) + ": " + currentPassword);
                 emit logMessage("Match: " + QString::fromStdString(match_info) +
                                 " by Client " + QString::fromStdString(clientId) +
                                 " Elapsed time: " + QString::number(duration_ms.count(), 'f', 3) + " ms.");
@@ -290,6 +326,29 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
         --totalClients;
 
         emit clientsStatusChanged();
+
+        // Check if all clients are ready
+        bool allReady = std::all_of(clientsReady.begin(), clientsReady.end(),
+                                    [](const auto& pair) {
+                                        return pair.second; // second = is_ready
+                                    });
+
+        if (allReady) {
+            // All clients are ready, do something
+            for (const auto& [client_id, _] : clientsReady) {
+                auto it = clients.find(client_id);
+                if (it != clients.end() && it->second && it->second->is_open()) {
+                    try {
+                        emit StopCracking();
+                    } catch (const boost::system::system_error& e) {
+                        std::cerr << "Failed to send STOP cracking on client id " << client_id << ": " << e.what() << "\n";
+                    }
+                }
+            }
+        }
+
+        if (totalClients == 0)
+                emit StopCracking();
     }
 }
 
