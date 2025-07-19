@@ -260,7 +260,7 @@ elseif(UNIX)
         COMMAND ${CMAKE_COMMAND} -E make_directory
             "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${QtCore_bin_dir}/../plugins/platforms/${PLATFORM_PLUGIN}"
+            "${Qt_plugins_dir}/${PLATFORM_PLUGIN}"
             "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
     )
 endif()
