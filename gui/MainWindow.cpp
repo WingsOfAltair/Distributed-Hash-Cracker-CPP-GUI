@@ -183,7 +183,7 @@ void MainWindow::TurnOffCracking() {
     started = false;
     ui->buttonSendHash->setText("Send to Clients");
     serverManager->StopCrackingClients();
-    ui->textEditLogs->append("Sent stop command to client.");
+    ui->textEditLogs->append("Sent stop command to clients.");
 }
 
 void MainWindow::TurnOffCrackingZeroClients() {

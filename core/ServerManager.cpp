@@ -42,9 +42,9 @@ std::map<std::string, std::string> readConfig(const std::string& filename) {
 
 ServerManager::ServerManager(QObject* parent) : QObject(parent) {
     readCrackedHashes("cracked.txt");
-    //auto config = readConfig("server.ini");
-    //SERVER_PORT = std::stoi(config["SERVER_PORT"]);
-    startServer(1337);
+    auto config = readConfig("server.ini");
+    SERVER_PORT = std::stoi(config["SERVER_PORT"]);
+    startServer(SERVER_PORT);
 }
 
 ServerManager::~ServerManager() {
