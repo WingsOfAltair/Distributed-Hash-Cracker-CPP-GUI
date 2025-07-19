@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <boost/regex.hpp>
+#include "ClientListWidget.h"
 
 bool started = false;
 
@@ -19,6 +20,22 @@ void MainWindow::closeEvent(QCloseEvent* event) {
     // QApplication::quit();
 }
 
+void MainWindow::showClientContextMenu(const QPoint &pos) {
+    QListWidgetItem *item = ui->listWidgetClients->itemAt(pos);
+    if (!item) return;
+
+    QMenu contextMenu(this);
+    QAction *shutdownAction = contextMenu.addAction("Shutdown Client");
+
+    QAction *selectedAction = contextMenu.exec(ui->listWidgetClients->mapToGlobal(pos));
+    if (selectedAction == shutdownAction) {
+        QString clientLabel = item->text(); // e.g. "127.0.0.1:2345 [Ready]"
+        QString clientId = clientLabel.section(' ', 0, 0); // split off status
+        serverManager->shutdownClient(clientId.toStdString());
+        onLogMessage("Sent shutdown command to: " + clientId);
+    }
+}
+
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
@@ -30,12 +47,18 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui->buttonSendHash, &QPushButton::clicked, this, &MainWindow::sendHash);
     connect(ui->buttonCheckHashType, &QPushButton::clicked, this, &MainWindow::checkHashType);
 
+    ui->listWidgetClients->setContextMenuPolicy(Qt::CustomContextMenu);
+    connect(ui->listWidgetClients, &QListWidget::customContextMenuRequested,
+            this, &MainWindow::showClientContextMenu);
+
     connect(serverManager, &ServerManager::clientConnected, this, &MainWindow::onClientConnected);
     connect(serverManager, &ServerManager::clientReadyStateChanged, this, &MainWindow::onClientReadyStateChanged);
     connect(serverManager, &ServerManager::logMessage, this, &MainWindow::onLogMessage);
     connect(serverManager, &ServerManager::clientsStatusChanged, this, &MainWindow::RefreshList);
     connect(serverManager, &ServerManager::StartCracking, this, &MainWindow::TurnOnCracking);
     connect(serverManager, &ServerManager::StopCracking, this, &MainWindow::TurnOffCracking);
+    connect(serverManager, &ServerManager::StopCrackingNotStop, this, &MainWindow::TurnOffCrackingNotStop);
+    connect(serverManager, &ServerManager::StopCrackingZeroClients, this, &MainWindow::TurnOffCrackingZeroClients);
 
     ui->comboBoxHashType->addItems({
         "bcrypt", "scrypt", "argon2",
@@ -73,16 +96,6 @@ std::string getHashType(const std::string& hash) {
 
 MainWindow::~MainWindow() {
     delete ui;
-}
-
-void MainWindow::startServer() {
-    int port = 1337;
-    if (port <= 0 || port > 65535) {
-        QMessageBox::warning(this, "Invalid Port", "Please enter a valid port number.");
-        return;
-    }
-    serverManager->startServer(port);
-    onLogMessage("Server started on port " + QString::number(port));
 }
 
 void MainWindow::checkHashType() {
@@ -129,6 +142,24 @@ void MainWindow::sendHash() {
     }
 
     if (!started) {
+        auto clientsReady = serverManager->getConnectedClientsStatus();
+        if (clientsReady.size() < 1)
+        {
+            QMessageBox::warning(this, "No Connected Clients", "There must be at least one connected, ready client.");
+            return;
+        }
+
+        bool allReady = std::all_of(clientsReady.begin(), clientsReady.end(),
+                                    [](const auto& pair) {
+                                        return pair.second; // second = is_ready
+                                    });
+
+        if (!allReady)
+        {
+            QMessageBox::warning(this, "Ready connected clients.", "All connected clients must be ready.");
+            return;
+        }
+
         this->TurnOnCracking();
         serverManager->sendHashToClients(type, hash, salt);
     }
@@ -142,11 +173,24 @@ void MainWindow::TurnOnCracking() {
     ui->buttonSendHash->setText("Stop Cracking!");
 }
 
+void MainWindow::TurnOffCrackingNotStop() {
+    started = false;
+    ui->buttonSendHash->setText("Send to Clients");
+    serverManager->StopCrackingClients();
+}
+
 void MainWindow::TurnOffCracking() {
     started = false;
     ui->buttonSendHash->setText("Send to Clients");
     serverManager->StopCrackingClients();
-    ui->textEditLogs->append("Sent stop command to clients.");
+    ui->textEditLogs->append("Sent stop command to client.");
+}
+
+void MainWindow::TurnOffCrackingZeroClients() {
+    started = false;
+    ui->buttonSendHash->setText("Send to Clients");
+    serverManager->StopCrackingClients();
+    ui->textEditLogs->append("Cracking has stopped because there are no connected clients.");
 }
 
 void MainWindow::RefreshList() {

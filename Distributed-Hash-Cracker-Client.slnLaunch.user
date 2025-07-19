@@ -1,0 +1,11 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "Distributed-Hash-Cracker-CPP-Client\\Distributed-Hash-Cracker-CPP-Client.vcxproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

@@ -51,6 +51,20 @@ ServerManager::~ServerManager() {
     //stopServer();
 }
 
+void ServerManager::shutdownClient(const std::string& clientId) {
+    auto it = clients.find(clientId);
+    if (it != clients.end() && it->second && it->second->is_open()) {
+        try {
+            boost::asio::write(*it->second, boost::asio::buffer("SHUTDOWN\n"));
+            std::cout << "Sent SHUTDOWN to client: " << clientId << "\n";
+        } catch (const boost::system::system_error& e) {
+            std::cerr << "Failed to send SHUTDOWN to " << clientId << ": " << e.what() << "\n";
+        }
+    } else {
+        std::cerr << "Client not found or connection closed: " << clientId << "\n";
+    }
+}
+
 void ServerManager::logServer(const std::string& message) {
     serverLogger.log(message);
 }
@@ -270,17 +284,7 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
                 emit clientsStatusChanged();
 
                 if (allReady) {
-                    // All clients are ready, do something
-                    for (const auto& [client_id, _] : clientsReady) {
-                        auto it = clients.find(client_id);
-                        if (it != clients.end() && it->second && it->second->is_open()) {
-                            try {
-                                emit StopCracking();
-                            } catch (const boost::system::system_error& e) {
-                                std::cerr << "Failed to send STOP cracking on client id " << client_id << ": " << e.what() << "\n";
-                            }
-                        }
-                    }
+                    emit StopCrackingNotStop();
                 }
 
                 auto end = std::chrono::high_resolution_clock::now();
@@ -334,21 +338,11 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
                                     });
 
         if (allReady) {
-            // All clients are ready, do something
-            for (const auto& [client_id, _] : clientsReady) {
-                auto it = clients.find(client_id);
-                if (it != clients.end() && it->second && it->second->is_open()) {
-                    try {
-                        emit StopCracking();
-                    } catch (const boost::system::system_error& e) {
-                        std::cerr << "Failed to send STOP cracking on client id " << client_id << ": " << e.what() << "\n";
-                    }
-                }
-            }
+            emit StopCrackingNotStop();
         }
 
         if (totalClients == 0)
-                emit StopCracking();
+                emit StopCrackingZeroClients();
     }
 }
 

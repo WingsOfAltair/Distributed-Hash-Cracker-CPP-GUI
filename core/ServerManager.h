@@ -30,6 +30,7 @@ public:
     void StopCrackingClients();
     std::unordered_map<std::string, bool> getConnectedClientsStatus();
     void logServer(const std::string& message);
+    void shutdownClient(const std::string& clientId);
 
     std::vector<char> udpSocketBuffer;
     boost::asio::ip::udp::endpoint udpSender;
@@ -41,6 +42,8 @@ signals:
     void logMessage(const QString& message);
     void clientsStatusChanged();
     void StopCracking();
+    void StopCrackingNotStop();
+    void StopCrackingZeroClients();
     void StartCracking();
 
 private:

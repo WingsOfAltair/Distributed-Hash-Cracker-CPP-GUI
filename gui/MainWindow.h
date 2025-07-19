@@ -22,7 +22,6 @@ public:
     ~MainWindow();
 
 private slots:
-    void startServer();
     void stopServer();
     void reloadClients();
     void checkHashType();
@@ -33,6 +32,9 @@ private slots:
     void RefreshList();
     void TurnOnCracking();
     void TurnOffCracking();
+    void TurnOffCrackingNotStop();
+    void TurnOffCrackingZeroClients();
+    void showClientContextMenu(const QPoint &pos);
 
 private:
     Ui::MainWindow* ui;

@@ -9,6 +9,7 @@ TARGET = DistributedHashCrackerServerGUI
 
 # ---- Source and Header Files ----
 SOURCES += \
+    gui/ClientListWidget.cpp \
     main.cpp \
     gui/MainWindow.cpp \
     core/ServerManager.cpp \
@@ -16,6 +17,7 @@ SOURCES += \
     shared/AsyncStorageLogger.cpp
 
 HEADERS += \
+    gui/ClientListWidget.h \
     gui/MainWindow.h \
     core/ServerManager.h \
     shared/BaseAsyncLogger.h \
