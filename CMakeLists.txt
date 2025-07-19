@@ -209,48 +209,32 @@ if(WIN32)
             )
         endforeach()
     endforeach()
-
-    set(QT_PLUGINS_PLATFORM_DIR "${Qt6_DIR}/../../../plugins/platforms")
+    
+    get_target_property(QtCore_location Qt6::Core IMPORTED_LOCATION_RELEASE)
+    get_filename_component(QtCore_bin_dir "${QtCore_location}" DIRECTORY)
+    set(PLATFORM_PLUGIN "qwindows.dll")
 
     add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${QT_PLUGINS_PLATFORM_DIR}/qwindows.dll"
+            "${QtCore_bin_dir}/../plugins/platforms/${PLATFORM_PLUGIN}"
             "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
     )
 
     set(QT_DLLS
-        "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgetsd.dll"
-        "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Guid.dll"
-        "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Cored.dll"
-        "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgets.dll"
-        "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Gui.dll"
-        "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Core.dll"
+        "Qt6Widgets.dll"
+        "Qt6Gui.dll"
+        "Qt6Core.dll"
+        "Qt6Widgetsd.dll"
+        "Qt6Guid.dll"
+        "Qt6Cored.dll"
     )
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        set(QT_DLLS
-            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgetsd.dll"
-            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Guid.dll"
-            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Cored.dll"
-            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgets.dll"
-            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Gui.dll"
-            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Core.dll"
-        )
-    else()
-        set(QT_DLLS
-            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgets.dll"
-            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Gui.dll"
-            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Core.dll"
-            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Widgetsd.dll"
-            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Guid.dll"
-            "C:/Qt/6.9.1/msvc2022_64/bin/Qt6Cored.dll"
-        )
-    endif()
 
     foreach(dll ${QT_DLLS})
         add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
-                "${dll}"
+                "${QtCore_bin_dir}/${dll}"
                 $<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>
         )
     endforeach()
@@ -265,7 +249,20 @@ if(WIN32)
             "${CMAKE_SOURCE_DIR}/include/scrypt/libsodium.dll"
             "$<TARGET_FILE_DIR:DistributedHashCrackerClient>"
     )
+elseif(UNIX)
+    # Linux: copy libqxcb.so
+    get_target_property(QtCore_imported_location Qt6::Core IMPORTED_LOCATION_RELEASE)
+    get_filename_component(QtCore_lib_dir "${QtCore_imported_location}" DIRECTORY)
+    get_filename_component(Qt_plugins_dir "${QtCore_lib_dir}/../plugins/platforms" ABSOLUTE)
+    set(PLATFORM_PLUGIN "libqxcb.so")
 
+    add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+            "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${QtCore_bin_dir}/../plugins/platforms/${PLATFORM_PLUGIN}"
+            "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
+    )
 endif()
 
 set(CONFIG_SRC_DIR "${CMAKE_SOURCE_DIR}/resources")
