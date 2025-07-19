@@ -317,6 +317,7 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
                                 " by Client " + QString::fromStdString(clientId) +
                                 " Elapsed time: " + QString::number(duration_ms.count(), 'f', 3) + " ms.");
                 this->StopCrackingClients();
+                emit StopCracking();
             }
         }
     }
