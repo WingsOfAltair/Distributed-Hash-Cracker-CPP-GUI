@@ -254,13 +254,14 @@ elseif(UNIX)
     get_target_property(QtCore_imported_location Qt6::Core IMPORTED_LOCATION_RELEASE)
     get_filename_component(QtCore_lib_dir "${QtCore_imported_location}" DIRECTORY)
     get_filename_component(Qt_plugins_dir "${QtCore_lib_dir}/../plugins/platforms" ABSOLUTE)
+    set(PLATFORM_PLUGIN_FOLDER "/usr/lib/x86_64-linux-gnu/qt6/plugins/platforms")
     set(PLATFORM_PLUGIN "libqxcb.so")
 
     add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
             "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${Qt_plugins_dir}/${PLATFORM_PLUGIN}"
+            "${PLATFORM_PLUGIN_FOLDER}/${PLATFORM_PLUGIN}"
             "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
     )
 endif()
