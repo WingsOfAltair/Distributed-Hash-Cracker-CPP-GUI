@@ -16,6 +16,13 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
+     <widget class="QCheckBox" name="darkModeCB">
+      <property name="text">
+       <string>Dark Mode Theme</string>
+      </property>
+     </widget>
+    </item>
+    <item>
      <widget class="QGroupBox" name="groupBoxHash">
       <property name="title">
        <string>Hash Input</string>

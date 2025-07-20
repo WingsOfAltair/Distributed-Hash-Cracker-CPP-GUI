@@ -16,6 +16,8 @@ class MainWindow : public QMainWindow {
 
 protected:
     void closeEvent(QCloseEvent* event) override;
+    void loadStyleSheet(const QString &path);
+    void toggleTheme();
 
 public:
     explicit MainWindow(QWidget* parent = nullptr);

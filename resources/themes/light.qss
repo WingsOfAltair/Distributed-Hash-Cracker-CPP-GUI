@@ -1,0 +1,56 @@
+QWidget {
+    background-color: white;
+    color: black;
+    selection-background-color: green; /* highlight color */
+    selection-color: black;          /* optional: text color when selected */
+}
+
+QPushButton {
+    background-color: #eee;
+    border: 1px solid #aaa;
+    padding: 6px;
+    border-radius: 4px;
+}
+
+QPushButton:hover {
+    background-color: #bad012;
+}
+
+QPushButton:pressed {
+    background-color: #4caf50;
+}
+
+QCheckBox {
+    spacing: 5px;
+    color: #000000;
+}
+
+QCheckBox:hover {
+    color: black;
+}
+
+QCheckBox::indicator:checked {
+    background-color: #bad012;
+    border: 1px solid #888;
+}
+
+QCheckBox::indicator:checked:hover {
+    background-color: #bad012;
+}
+
+QCheckBox::indicator:unchecked {
+    background-color: white;
+    border: 1px solid #888;
+}
+
+QCheckBox::indicator:unchecked:hover {
+    background-color: #bad012;
+}
+
+QCheckBox::indicator:pressed {
+    background-color: #4caf50;
+}
+
+QCheckBox:pressed {
+    color: green;
+}
