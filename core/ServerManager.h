@@ -31,6 +31,7 @@ public:
     std::unordered_map<std::string, bool> getConnectedClientsStatus();
     void logServer(const std::string& message);
     void shutdownClient(const std::string& clientId);
+    void restartClient(const std::string& clientId);
 
     std::vector<char> udpSocketBuffer;
     boost::asio::ip::udp::endpoint udpSender;

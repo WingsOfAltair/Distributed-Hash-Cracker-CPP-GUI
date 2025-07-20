@@ -26,13 +26,19 @@ void MainWindow::showClientContextMenu(const QPoint &pos) {
 
     QMenu contextMenu(this);
     QAction *shutdownAction = contextMenu.addAction("Shutdown Client");
+    QAction *restartAction = contextMenu.addAction("Restart Client");
 
     QAction *selectedAction = contextMenu.exec(ui->listWidgetClients->mapToGlobal(pos));
-    if (selectedAction == shutdownAction) {
+    if (selectedAction->text() == "Shutdown Client") {
         QString clientLabel = item->text(); // e.g. "127.0.0.1:2345 [Ready]"
         QString clientId = clientLabel.section(' ', 0, 0); // split off status
         serverManager->shutdownClient(clientId.toStdString());
         onLogMessage("Sent shutdown command to: " + clientId);
+    } else if (selectedAction->text() == "Restart Client") {
+        QString clientLabel = item->text(); // e.g. "127.0.0.1:2345 [Ready]"
+        QString clientId = clientLabel.section(' ', 0, 0); // split off status
+        serverManager->restartClient(clientId.toStdString());
+        onLogMessage("Sent restart command to: " + clientId);
     }
 }
 
@@ -176,7 +182,6 @@ void MainWindow::TurnOnCracking() {
 void MainWindow::TurnOffCrackingNotStop() {
     started = false;
     ui->buttonSendHash->setText("Send to Clients");
-    serverManager->StopCrackingClients();
 }
 
 void MainWindow::TurnOffCracking() {
