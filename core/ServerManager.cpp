@@ -65,6 +65,20 @@ void ServerManager::shutdownClient(const std::string& clientId) {
     }
 }
 
+void ServerManager::restartClient(const std::string& clientId) {
+    auto it = clients.find(clientId);
+    if (it != clients.end() && it->second && it->second->is_open()) {
+        try {
+            boost::asio::write(*it->second, boost::asio::buffer("RESTART\n"));
+            std::cout << "Sent RESTART to client: " << clientId << "\n";
+        } catch (const boost::system::system_error& e) {
+            std::cerr << "Failed to send RESTART to " << clientId << ": " << e.what() << "\n";
+        }
+    } else {
+        std::cerr << "Client not found or connection closed: " << clientId << "\n";
+    }
+}
+
 void ServerManager::logServer(const std::string& message) {
     serverLogger.log(message);
 }
