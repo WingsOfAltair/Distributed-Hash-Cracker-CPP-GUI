@@ -4,6 +4,7 @@
 #include <QMessageBox>
 #include <QCloseEvent>
 #include <QFile>
+#include <QInputDialog>
 #include <QVBoxLayout>
 #include <boost/regex.hpp>
 #include "ClientListWidget.h"
@@ -47,18 +48,61 @@ void MainWindow::showClientContextMenu(const QPoint &pos) {
     QMenu contextMenu(this);
     QAction *shutdownAction = contextMenu.addAction("Shutdown Client");
     QAction *restartAction = contextMenu.addAction("Restart Client");
+    QAction *setNicknameAction = contextMenu.addAction("Set Nickname");
+    QAction *removeNicknameAction = contextMenu.addAction("Remove Nickname");
 
     QAction *selectedAction = contextMenu.exec(ui->listWidgetClients->mapToGlobal(pos));
     if (selectedAction->text() == "Shutdown Client") {
         QString clientLabel = item->text(); // e.g. "127.0.0.1:2345 [Ready]"
         QString clientId = clientLabel.section(' ', 0, 0); // split off status
         serverManager->shutdownClient(clientId.toStdString());
-        onLogMessage("Sent shutdown command to: " + clientId);
+        onLogMessage("Sent shutdown command to client: " + clientId);
     } else if (selectedAction->text() == "Restart Client") {
         QString clientLabel = item->text(); // e.g. "127.0.0.1:2345 [Ready]"
         QString clientId = clientLabel.section(' ', 0, 0); // split off status
         serverManager->restartClient(clientId.toStdString());
-        onLogMessage("Sent restart command to: " + clientId);
+        onLogMessage("Sent restart command to client: " + clientId);
+    } else if (selectedAction->text() == "Set Nickname") {
+        QString clientLabel = item->text(); // e.g. "127.0.0.1:2345 [Ready]"
+        QString clientId = clientLabel.section(' ', 0, 0); // split off status
+        bool ok;
+        QString text = QInputDialog::getText(this, "Enter Text",
+                                             "Please enter your text:",
+                                             QLineEdit::Normal,
+                                             "", &ok);
+        if (ok) {
+            // OK was pressed
+            if (!text.isEmpty()) {
+                serverManager->setClientNickname(clientId.toStdString(), text.toStdString());
+                onLogMessage("Sent SET_NICKNAME command to client: " + clientId);
+                RefreshList();
+            } else {
+                qDebug() << "User pressed OK but input was empty";
+                QMessageBox::warning(this, "Missing new nickname", "You must enter a new nickname.");
+                return;
+            }
+        } else {
+            // Cancel was pressed
+        }
+    } else if (selectedAction->text() == "Remove Nickname") {
+        QString clientLabel = item->text(); // e.g. "127.0.0.1:2345 [Ready]"
+        QString clientId = clientLabel.section(' ', 0, 0); // split off status
+
+        QMessageBox::StandardButton reply = QMessageBox::question(
+            this,
+            "Confirm Action",
+            "Are you sure you want to remove the nickname from client " + clientId + "?",
+            QMessageBox::Yes  |
+                QMessageBox::No, QMessageBox::Yes // Default selected option
+            );
+
+        if (reply == QMessageBox::Yes) {
+            serverManager->removeClientNickname(clientId.toStdString());
+            onLogMessage("Sent REMOVE_NICKNAME command to client: " + clientId);
+            RefreshList();
+        } else {
+            return;
+        }
     }
 }
 
@@ -167,7 +211,7 @@ void MainWindow::reloadClients() {
 
     bool allReady = std::all_of(clientsReady.begin(), clientsReady.end(),
                                 [](const auto& pair) {
-                                    return pair.second; // second = is_ready
+                                    return pair.second.second; // second = is_ready
                                 });
 
     if (!allReady)
@@ -212,7 +256,7 @@ void MainWindow::sendHash() {
 
         bool allReady = std::all_of(clientsReady.begin(), clientsReady.end(),
                                     [](const auto& pair) {
-                                        return pair.second; // second = is_ready
+                                        return pair.second.second; // second = is_ready
                                     });
 
         if (!allReady)
@@ -256,16 +300,25 @@ void MainWindow::TurnOffCrackingZeroClients() {
 void MainWindow::RefreshList() {
     ui->listWidgetClients->clear();
 
-    std::unordered_map<std::string, bool> connectedClients = serverManager->getConnectedClientsStatus();
+    std::unordered_map<std::string, std::pair<std::string, bool>> connectedClients = serverManager->getConnectedClientsStatus();
 
-    // Re-add all clients
-    for (const auto& [clientIdStd, ready] : connectedClients) {
+    for (const auto& [clientIdStd, clientInfo] : connectedClients) {
+        const auto& [nickname, ready] = clientInfo;  // destructure pair<string,bool>
+
         QString clientId = QString::fromStdString(clientIdStd);
-        if (ready) {
-            ui->listWidgetClients->addItem(clientId + " [Ready]");
-        } else {
-            ui->listWidgetClients->addItem(clientId + " [Not Ready]");
+        QString displayText = clientId;
+
+        if (!nickname.empty()) {
+            displayText += " (" + QString::fromStdString(nickname) + ")";
         }
+
+        if (ready) {
+            displayText += " [Ready]";
+        } else {
+            displayText += " [Not Ready]";
+        }
+
+        ui->listWidgetClients->addItem(displayText);
     }
 }
 

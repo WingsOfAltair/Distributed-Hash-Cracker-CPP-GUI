@@ -28,10 +28,12 @@ public:
     void asyncAcceptClient();
     void asyncUdpReceive();
     void StopCrackingClients();
-    std::unordered_map<std::string, bool> getConnectedClientsStatus();
+    std::unordered_map<std::string, std::pair<std::string, bool>> getConnectedClientsStatus();
     void logServer(const std::string& message);
     void shutdownClient(const std::string& clientId);
     void restartClient(const std::string& clientId);
+    void setClientNickname(const std::string& clientId, const std::string& newNickname);
+    void removeClientNickname(const std::string& clientId);
 
     std::vector<char> udpSocketBuffer;
     boost::asio::ip::udp::endpoint udpSender;
@@ -52,7 +54,7 @@ private:
     std::unique_ptr<boost::asio::ip::tcp::acceptor> acceptor;
     std::unique_ptr<boost::asio::ip::udp::socket> udpSocket;
     std::unordered_map<std::string, std::shared_ptr<boost::asio::ip::tcp::socket>> clients;
-    std::unordered_map<std::string, bool> clientsReady;
+    std::unordered_map<std::string, std::pair<std::string, bool>> clientsReady;
     std::mutex clientsMutex;
     std::atomic<bool> serverRunning{ false };
     std::atomic<bool> matchFound{ false };
