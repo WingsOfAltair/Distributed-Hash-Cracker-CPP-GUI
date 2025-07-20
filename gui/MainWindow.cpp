@@ -133,8 +133,38 @@ void MainWindow::stopServer() {
 }
 
 void MainWindow::reloadClients() {
-    serverManager->reloadClients();
-    onLogMessage("Reload message sent to ready clients.");
+    auto clientsReady = serverManager->getConnectedClientsStatus();
+    if (clientsReady.size() < 1)
+    {
+        QMessageBox::warning(this, "No Connected Clients", "There must be at least one connected, ready client.");
+        return;
+    }
+
+    bool allReady = std::all_of(clientsReady.begin(), clientsReady.end(),
+                                [](const auto& pair) {
+                                    return pair.second; // second = is_ready
+                                });
+
+    if (!allReady)
+    {
+        QMessageBox::StandardButton reply = QMessageBox::question(
+            this,
+            "Confirm Action",
+            "Some connected clients are not ready. Do you want to only reload ready clients?",
+            QMessageBox::Yes  |
+                QMessageBox::No, QMessageBox::Yes // Default selected option
+            );
+
+        if (reply == QMessageBox::Yes) {
+            serverManager->reloadClients();
+            onLogMessage("Reload message sent to ready clients.");
+        } else {
+            return;
+        }
+    } else {
+        serverManager->reloadClients();
+        onLogMessage("Reload message sent to ready clients.");
+    }
 }
 
 void MainWindow::sendHash() {
