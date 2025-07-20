@@ -42,9 +42,9 @@ std::map<std::string, std::string> readConfig(const std::string& filename) {
 
 ServerManager::ServerManager(QObject* parent) : QObject(parent) {
     readCrackedHashes("cracked.txt");
-    auto config = readConfig("server.ini");
-    SERVER_PORT = std::stoi(config["SERVER_PORT"]);
-    startServer(SERVER_PORT);
+    //auto config = readConfig("server.ini");
+    //SERVER_PORT = std::stoi(config["SERVER_PORT"]);
+    startServer(1337);
 }
 
 ServerManager::~ServerManager() {
@@ -56,9 +56,9 @@ void ServerManager::shutdownClient(const std::string& clientId) {
     if (it != clients.end() && it->second && it->second->is_open()) {
         try {
             boost::asio::write(*it->second, boost::asio::buffer("SHUTDOWN\n"));
-            std::cout << "Sent SHUTDOWN to client: " << clientId << "\n";
+            std::cout << "Sent SHUTDOWN command to client: " << clientId << "\n";
         } catch (const boost::system::system_error& e) {
-            std::cerr << "Failed to send SHUTDOWN to " << clientId << ": " << e.what() << "\n";
+            std::cerr << "Failed to send SHUTDOWN command to " << clientId << ": " << e.what() << "\n";
         }
     } else {
         std::cerr << "Client not found or connection closed: " << clientId << "\n";
@@ -70,13 +70,67 @@ void ServerManager::restartClient(const std::string& clientId) {
     if (it != clients.end() && it->second && it->second->is_open()) {
         try {
             boost::asio::write(*it->second, boost::asio::buffer("RESTART\n"));
-            std::cout << "Sent RESTART to client: " << clientId << "\n";
+            std::cout << "Sent RESTART command to client: " << clientId << "\n";
         } catch (const boost::system::system_error& e) {
-            std::cerr << "Failed to send RESTART to " << clientId << ": " << e.what() << "\n";
+            std::cerr << "Failed to send RESTART command to " << clientId << ": " << e.what() << "\n";
         }
     } else {
         std::cerr << "Client not found or connection closed: " << clientId << "\n";
     }
+}
+
+void ServerManager::removeClientNickname(const std::string& clientId) {
+    auto it = clients.find(clientId);
+    if (it != clients.end() && it->second && it->second->is_open()) {
+        try {
+            boost::asio::write(*it->second, boost::asio::buffer("REMOVE_NICKNAME\n"));
+            std::cout << "Sent REMOVE_NICKNAME command to client: " << clientId << "\n";
+        } catch (const boost::system::system_error& e) {
+            std::cerr << "Failed to send REMOVE_NICKNAME command to " << clientId << ": " << e.what() << "\n";
+        }
+    } else {
+        std::cerr << "Client not found or connection closed: " << clientId << "\n";
+    }
+
+    std::lock_guard<std::mutex> lock(clientsMutex);
+
+    auto it2 = clientsReady.find(clientId);
+    if (it2 != clientsReady.end()) {
+        bool readyStatus = it2->second.second;  // keep the current ready status
+        it2->second = {"", readyStatus};  // update nickname but keep ready flag
+    } else {
+        // If clientId not found, optionally add it with ready = false
+        clientsReady[clientId] = {"", false};
+    }
+
+    emit clientsStatusChanged();
+}
+
+void ServerManager::setClientNickname(const std::string& clientId, const std::string& newNickname) {
+    auto it = clients.find(clientId);
+    if (it != clients.end() && it->second && it->second->is_open()) {
+        try {
+            boost::asio::write(*it->second, boost::asio::buffer("SET_NICKNAME:" + newNickname + "\n"));
+            std::cout << "Sent SET_NICKNAME command to client: " << clientId << "\n";
+        } catch (const boost::system::system_error& e) {
+            std::cerr << "Failed to send SET_NICKNAME command to " << clientId << ": " << e.what() << "\n";
+        }
+    } else {
+        std::cerr << "Client not found or connection closed: " << clientId << "\n";
+    }
+
+    std::lock_guard<std::mutex> lock(clientsMutex);
+
+    auto it2 = clientsReady.find(clientId);
+    if (it2 != clientsReady.end()) {
+        bool readyStatus = it2->second.second;  // keep the current ready status
+        it2->second = {newNickname, readyStatus};  // update nickname but keep ready flag
+    } else {
+        // If clientId not found, optionally add it with ready = false
+        clientsReady[clientId] = {newNickname, false};
+    }
+
+    emit clientsStatusChanged();
 }
 
 void ServerManager::logServer(const std::string& message) {
@@ -255,7 +309,10 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
     {
         std::lock_guard<std::mutex> lock(clientsMutex);
         clients[clientId] = socket;
-        clientsReady[clientId] = false;
+        auto it = clientsReady.find(clientId);
+        std::string nickname = (it != clientsReady.end()) ? it->second.first : "";
+
+        clientsReady[clientId] = {nickname, false};
         ++totalClients;
         emit clientsStatusChanged();
     }
@@ -276,14 +333,23 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
 
             if (message.find("Ready") == 0) {
                 clientsMutex.lock();
-                clientsReady[clientId] = true;
+                size_t pos = message.find(':');
+                if (pos != std::string::npos && pos + 1 < message.length()) {
+                    std::string nickname = message.substr(pos + 1);
+                    clientsReady[clientId] = {nickname, true};
+                } else {
+                    clientsReady[clientId] = {"", true};
+                }
                 clientsMutex.unlock();
                 emit clientReadyStateChanged(QString::fromStdString(clientId), true);
                 emit clientsStatusChanged();
             }
             else if (message.find("NO_MATCH") == 0) {
                 clientsMutex.lock();
-                clientsReady[clientId] = true;
+                auto it = clientsReady.find(clientId);
+                std::string nickname = (it != clientsReady.end()) ? it->second.first : "";
+
+                clientsReady[clientId] = {nickname, false};
                 clientsMutex.unlock();
 
                 std::lock_guard<std::mutex> lock(clientsMutex);
@@ -291,7 +357,7 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
                 // Check if all clients are ready
                 bool allReady = std::all_of(clientsReady.begin(), clientsReady.end(),
                                             [](const auto& pair) {
-                                                return pair.second; // second = is_ready
+                                                return pair.second.second; // outer pair.second = inner pair; inner pair.second = bool
                                             });
 
                 emit clientReadyStateChanged(QString::fromStdString(clientId), true);
@@ -333,6 +399,15 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
                 this->StopCrackingClients();
                 emit StopCracking();
             }
+            else if (message.find("\000Ready") == 0) {
+                clientsMutex.lock();
+                auto it = clientsReady.find(clientId);
+                std::string nickname = (it != clientsReady.end()) ? it->second.first : "";
+                clientsReady[clientId] = {nickname, true};
+                clientsMutex.unlock();
+                emit clientReadyStateChanged(QString::fromStdString(clientId), true);
+                emit clientsStatusChanged();
+            }
         }
     }
     catch (...) {
@@ -349,7 +424,7 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
         // Check if all clients are ready
         bool allReady = std::all_of(clientsReady.begin(), clientsReady.end(),
                                     [](const auto& pair) {
-                                        return pair.second; // second = is_ready
+                                        return pair.second.second; // second = is_ready
                                     });
 
         if (allReady) {
@@ -361,7 +436,7 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
     }
 }
 
-std::unordered_map<std::string, bool> ServerManager::getConnectedClientsStatus() {
+std::unordered_map<std::string, std::pair<std::string, bool>> ServerManager::getConnectedClientsStatus() {
     return clientsReady;
 }
 
@@ -405,16 +480,17 @@ void ServerManager::notifyClients() {
     emit logMessage("Processing entered hash, please wait...");
     std::lock_guard<std::mutex> lock(clientsMutex);
     for (auto& [id, socket] : clients) {
-        if (clientsReady[id] && socket && socket->is_open()) {
+        auto it = clientsReady.find(id);
+        if (it != clientsReady.end() && it->second.second && socket && socket->is_open()) {
             try {
                 boost::asio::write(*socket, boost::asio::buffer(msg));
-                clientsReady[id] = false;
+                it->second.second = false;
 
                 emit clientsStatusChanged();
             }
             catch (...) {
                 emit logMessage("Failed to notify client: " + QString::fromStdString(id));
-                logServer(std::string("Failed to notify client: ") + id);
+                logServer("Failed to notify client: " + id);
             }
         }
     }
@@ -422,14 +498,14 @@ void ServerManager::notifyClients() {
 
 void ServerManager::notifyStopAll() {
     std::lock_guard<std::mutex> lock(clientsMutex);
-    for (const auto& [client_id, is_ready] : clientsReady) {
-        if (!is_ready) {
+    for (const auto& [client_id, info] : clientsReady) {
+        if (!info.second) {
             auto it = clients.find(client_id);
             if (it != clients.end() && it->second && it->second->is_open()) {
                 try {
                     boost::asio::write(*it->second, boost::asio::buffer("STOP\n"));
                 } catch (const boost::system::system_error& e) {
-                    std::cerr << "Failed to send reload to client " << client_id << ": " << e.what() << "\n";
+                    std::cerr << "Failed to send STOP to client " << client_id << ": " << e.what() << "\n";
                 }
             }
         }
@@ -439,14 +515,14 @@ void ServerManager::notifyStopAll() {
 void ServerManager::reloadClients() {
     std::lock_guard<std::mutex> lock(clientsMutex);
     for (auto& [id, socket] : clients) {
-        if (clientsReady[id] && socket && socket->is_open()) {
+        if (clientsReady[id].second && socket && socket->is_open()) {
             try {
                 boost::asio::write(*socket, boost::asio::buffer("reload\n"));
-                clientsReady[id] = false;
+                clientsReady[id].second = false;
             }
             catch (...) {
                 emit logMessage("Failed to reload client: " + QString::fromStdString(id));
-                logServer(std::string("Failed to reload client: ") + id);
+                logServer("Failed to reload client: " + id);
             }
         }
     }
