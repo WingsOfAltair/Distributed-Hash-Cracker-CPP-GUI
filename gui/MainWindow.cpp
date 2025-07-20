@@ -3,10 +3,13 @@
 #include "ui_MainWindow.h"
 #include <QMessageBox>
 #include <QCloseEvent>
+#include <QFile>
+#include <QVBoxLayout>
 #include <boost/regex.hpp>
 #include "ClientListWidget.h"
 
 bool started = false;
+bool darkMode = false;
 
 void MainWindow::closeEvent(QCloseEvent* event) {
     // Optionally ask user for confirmation or do cleanup here
@@ -18,6 +21,23 @@ void MainWindow::closeEvent(QCloseEvent* event) {
 
     // Or call QApplication::quit() if you want to quit immediately:
     // QApplication::quit();
+}
+
+void MainWindow::loadStyleSheet(const QString &path) {
+    QFile file(path);
+    if (file.open(QFile::ReadOnly)) {
+        QString qss = QString::fromUtf8(file.readAll());
+        qApp->setStyleSheet(qss);
+    }
+}
+
+void MainWindow::toggleTheme() {
+    darkMode = !darkMode;
+    if (darkMode) {
+        loadStyleSheet(":/themes/dark.qss");
+    } else {
+        loadStyleSheet(":/themes/light.qss");
+    }
 }
 
 void MainWindow::showClientContextMenu(const QPoint &pos) {
@@ -49,9 +69,14 @@ MainWindow::MainWindow(QWidget* parent)
 {
     ui->setupUi(this);
 
+    loadStyleSheet(":/themes/light.qss");
+
     connect(ui->buttonReload, &QPushButton::clicked, this, &MainWindow::reloadClients);
     connect(ui->buttonSendHash, &QPushButton::clicked, this, &MainWindow::sendHash);
     connect(ui->buttonCheckHashType, &QPushButton::clicked, this, &MainWindow::checkHashType);
+    connect(ui->darkModeCB, &QCheckBox::clicked, this, [=]() {
+        this->toggleTheme();
+    });
 
     ui->listWidgetClients->setContextMenuPolicy(Qt::CustomContextMenu);
     connect(ui->listWidgetClients, &QListWidget::customContextMenuRequested,
@@ -133,8 +158,38 @@ void MainWindow::stopServer() {
 }
 
 void MainWindow::reloadClients() {
-    serverManager->reloadClients();
-    onLogMessage("Reload message sent to ready clients.");
+    auto clientsReady = serverManager->getConnectedClientsStatus();
+    if (clientsReady.size() < 1)
+    {
+        QMessageBox::warning(this, "No Connected Clients", "There must be at least one connected, ready client.");
+        return;
+    }
+
+    bool allReady = std::all_of(clientsReady.begin(), clientsReady.end(),
+                                [](const auto& pair) {
+                                    return pair.second; // second = is_ready
+                                });
+
+    if (!allReady)
+    {
+        QMessageBox::StandardButton reply = QMessageBox::question(
+            this,
+            "Confirm Action",
+            "Some connected clients are not ready. Do you want to only reload ready clients?",
+            QMessageBox::Yes  |
+                QMessageBox::No, QMessageBox::Yes // Default selected option
+            );
+
+        if (reply == QMessageBox::Yes) {
+            serverManager->reloadClients();
+            onLogMessage("Reload message sent to ready clients.");
+        } else {
+            return;
+        }
+    } else {
+        serverManager->reloadClients();
+        onLogMessage("Reload message sent to ready clients.");
+    }
 }
 
 void MainWindow::sendHash() {

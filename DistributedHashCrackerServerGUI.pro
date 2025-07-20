@@ -27,6 +27,8 @@ HEADERS += \
 
 FORMS += gui/MainWindow.ui
 
+RESOURCES += resources/resources.qrc
+
 # ---- Include Paths ----
 INCLUDEPATH += \
     include \

@@ -8,6 +8,8 @@ project(DistributedHashCrackerServerGUI LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(SRC_DIR ${CMAKE_SOURCE_DIR})
+set(RESOURCE_FILE "${SRC_DIR}/resources/resources.qrc")
 
 if(WIN32)
 # Set Qt path (same effect as -DCMAKE_PREFIX_PATH=...)
@@ -28,9 +30,7 @@ if(UNIX)
     link_directories(${SODIUM_LIBRARY_DIRS})
 endif()
 
-find_package(Qt6 REQUIRED COMPONENTS Widgets)     
-
-set(SRC_DIR ${CMAKE_SOURCE_DIR})
+find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)     
 
 file(GLOB_RECURSE SOURCES
     ${SRC_DIR}/include/*.cpp
@@ -38,6 +38,10 @@ file(GLOB_RECURSE SOURCES
     ${SRC_DIR}/gui/*.cpp
     ${SRC_DIR}/core/*.cpp
     ${SRC_DIR}/shared/*.cpp
+)
+
+qt_add_resources(RESOURCE_SOURCES
+    ${RESOURCE_FILE}
 )
 
 qt_standard_project_setup()
@@ -147,6 +151,7 @@ include_directories(
 qt_add_executable(DistributedHashCrackerServerGUI WIN32
     ${SOURCES}
     ${UIS_HDRS}
+    ${RESOURCE_SOURCES}
 )
 
 target_compile_definitions(DistributedHashCrackerServerGUI PRIVATE _WIN32_WINNT=0x0601)
@@ -163,6 +168,8 @@ target_include_directories(DistributedHashCrackerServerGUI PRIVATE
 
 if (WIN32)
     target_link_libraries(DistributedHashCrackerServerGUI PRIVATE
+        Qt6::Core
+        Qt6::Gui
         Qt6::Widgets
         ${Boost_LIBRARIES}
         OpenSSL::SSL
