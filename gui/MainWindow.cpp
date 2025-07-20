@@ -65,11 +65,24 @@ void MainWindow::showClientContextMenu(const QPoint &pos) {
     } else if (selectedAction->text() == "Set Nickname") {
         QString clientLabel = item->text(); // e.g. "127.0.0.1:2345 [Ready]"
         QString clientId = clientLabel.section(' ', 0, 0); // split off status
+        std::string existingNickname = "";
+
+        std::unordered_map<std::string, std::pair<std::string, bool>> connectedClients = serverManager->getConnectedClientsStatus();
+
+        for (const auto& [id, clientInfo] : connectedClients) {
+            const auto& [nickname, ready] = clientInfo;
+
+            if (id == clientId) {
+                existingNickname = nickname;
+                break; // Found the client, no need to continue
+            }
+        }
+
         bool ok;
         QString text = QInputDialog::getText(this, "Enter Text",
                                              "Please enter your text:",
                                              QLineEdit::Normal,
-                                             "", &ok);
+                                             QString::fromStdString(existingNickname), &ok);
         if (ok) {
             // OK was pressed
             if (!text.isEmpty()) {
