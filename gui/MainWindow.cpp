@@ -72,7 +72,7 @@ void MainWindow::showClientContextMenu(const QPoint &pos) {
         for (const auto& [id, clientInfo] : connectedClients) {
             const auto& [nickname, ready] = clientInfo;
 
-            if (id == clientId) {
+            if (id == clientId.toStdString()) {
                 existingNickname = nickname;
                 break; // Found the client, no need to continue
             }
