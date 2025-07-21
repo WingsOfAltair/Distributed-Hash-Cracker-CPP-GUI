@@ -72,26 +72,30 @@ of the server and port match properly.
 MANUAL COMPILATION WITHOUT CMAKE (IGNORE BELOW UNLESS IF EXPERT.)
 ==================================================================
 
-(Create build folder and navigate inside it and run):
+(Create build folder and navigate inside it and run to compile client CLI):
 
 g++ -o DistributedHashCrackerClientCLI ../Distributed-Hash-Cracker-CPP-Client/Distributed-Hash-Cracker-CPP-Client.cpp \
     -I../include -I../include/scrypt \
     -lboost_system -lssl -lcrypto -lboost_thread -lboost_chrono -lboost_locale \
     -lpthread -lbcrypt -lcrypt -largon2 -lsodium
 
-(Then go to Distributed-Hash-Cracker-CPP/Distributed-Hash-Cracker-CPP (server source) folder and run):
+(Do not forget to move config.ini, mutation_list.txt to build folder, then configure config.ini with wordlist path)
+
+(Then run to compile server CLI):
 
 g++ ../Distributed-Hash-Cracker-CPP/Distributed-Hash-Cracker-CPP-Server.cpp -o DistributedHashCrackerServerCLI -lboost_system -lboost_filesystem -lssl -lboost_thread -lboost_chrono -lboost_locale -lpthread
 
-(For Qt6 Server GUI, go to root repository folder and run):
+(Do not forget to move server.ini to build folder)
 
-/usr/lib/qt6/libexec/uic gui/MainWindow.ui -o gui/ui_MainWindow.h
+(For a few Qt6 Server GUI dependencies, run):
 
-/usr/lib/qt6/libexec/moc ../gui/MainWindow.h -o moc_MainWindow.cpp
+/usr/lib/qt6/libexec/uic ../gui/MainWindow.ui -o ../gui/ui_MainWindow.h
 
-/usr/lib/qt6/libexec/moc ../core/ServerManager.h -o moc_ServerManager.cpp
+/usr/lib/qt6/libexec/moc ../gui/MainWindow.h -o ../moc_MainWindow.cpp
 
-(Then go to build folder and run):
+/usr/lib/qt6/libexec/moc ../core/ServerManager.h -o ../moc_ServerManager.cpp
+
+(Then run to compile server GUI):
 
 g++ -std=c++17 -fPIC ../main.cpp ../gui/*.cpp ../core/*.cpp ../shared/*.cpp ../moc_MainWindow.cpp ../moc_ServerManager.cpp \
     -I.. \
@@ -101,3 +105,5 @@ g++ -std=c++17 -fPIC ../main.cpp ../gui/*.cpp ../core/*.cpp ../shared/*.cpp ../m
     -lssl -lcrypto \
     -lpthread -ldl \
     -o DistributedHashCrackerServerGUI
+
+(Do not forget to move server.ini to build folder)
