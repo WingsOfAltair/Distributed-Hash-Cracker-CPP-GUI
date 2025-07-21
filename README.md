@@ -12,6 +12,30 @@
 	<img width=500 src="repository_assets_github/ServerGUI-preview.png"/>
 </p>
 
+## About
+
+This repository contains the source code to three projects:
+
+1. Distributed Hash Cracker Server GUI
+
+A centralized real-time command center which manages several hash cracking clients. It is built using Qt6 C++ with an intuitive graphical user interface; supporting both Light & Dark mode.
+
+It features more features than the CLI version through its user interface.
+
+Clients can be given nicknames to differentiate between them using the server GUI context menu.
+
+Clients can be restarted, shutdown, reloaded, and stopped using this version (GUI).
+
+2. Distributed Hash Cracker Server CLI
+
+A centralized command center with limited features. It is meant as a lightweight command center with a command line interface.
+
+3. Distributed Hash Cracker Client CLI
+
+The actual hash cracking client which connects to the server and receives coordination requests from it. Multiple clients connect to the same server to attack one hash.
+
+The client can be configured to be multi-threaded or single-threaded. Also, it supports chained word mutations through specific mutation options which can be setup in the mutation_list.txt file.
+
 ## Previews
 
 <details>
