@@ -12,6 +12,9 @@ if exist %BUILD_DIR% (
     rmdir /s /q %BUILD_DIR%
 )
 
+REM Run Visual Studio 2022 compiler
+CALL "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+
 REM Create build directory
 mkdir %BUILD_DIR%
 cd %BUILD_DIR%
