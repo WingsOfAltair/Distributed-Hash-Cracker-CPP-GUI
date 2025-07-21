@@ -12,4 +12,18 @@ Compilation steps:
 1- Run (double-click) 'build-win64.bat' and watch the magic happen
 
 The compiled build output will be in generated build folder.
+
+OR using CMake-GUI:
+
+1- Run CMake-GUI.exe
+2- Click browse source button
+3- Pick the root of source folder "Distributed-Hash-Cracker-CPP-GUI"
+4- Pick where to build the generated source (any other folder)
+5- Click configure and wait until it finishes
+6- Click generate button and close CMake
+7- Navigate to the generated source folder and open the solution file
+8- Pick either "Debug" or "Release" and build the solution
+9- Navigate to either "Debug" or "Release folders
+10- Configure the client and server .ini files
+11- Run the server either in CLI or GUI mode, and the client
 ==================================================================

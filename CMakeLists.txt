@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.30.4)
 
 if(POLICY CMP0167)
     cmake_policy(SET CMP0167 OLD)
@@ -216,17 +216,32 @@ if(WIN32)
             )
         endforeach()
     endforeach()
-    
+
     get_target_property(QtCore_location Qt6::Core IMPORTED_LOCATION_RELEASE)
     get_filename_component(QtCore_bin_dir "${QtCore_location}" DIRECTORY)
-    set(PLATFORM_PLUGIN "qwindows.dll")
-
+    
+    # Create the platforms directory once
     add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
             "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
+    )
+
+    # Debug config: copy qwindowsd.dll
+    add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            "${QtCore_bin_dir}/../plugins/platforms/${PLATFORM_PLUGIN}"
-            "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
+            "${QtCore_bin_dir}/../plugins/platforms/qwindowsd.dll"
+            "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms/qwindowsd.dll"
+        COMMENT "Copying qwindowsd.dll for Debug"
+        CONFIGURATIONS Debug
+    )
+
+    # Release config: copy qwindows.dll
+    add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${QtCore_bin_dir}/../plugins/platforms/qwindows.dll"
+            "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms/qwindows.dll"
+        COMMENT "Copying qwindows.dll for Release"
+        CONFIGURATIONS Release
     )
 
     set(QT_DLLS
