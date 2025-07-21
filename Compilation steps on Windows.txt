@@ -1,6 +1,15 @@
 ==================================================================
 MAKE SURE YOU SETUP ALL DEPENDENCIES BEFORE YOU ATTEMPT TO COMPILE
 ==================================================================
+Dependencies:
 
-1- Run 'x64 Native Tools Command Prompt for VS 2022' tool and navigate to root of repository
-2- Type 'build-win64.bat' into console and hit enter
+1- Boost
+2- Qt6
+3- OpenSSL
+==================================================================
+Compilation steps:
+
+1- Run (double-click) 'build-win64.bat' and watch the magic happen
+
+The compiled build output will be in generated build folder.
+==================================================================
