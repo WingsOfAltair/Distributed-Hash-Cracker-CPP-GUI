@@ -52,11 +52,25 @@ sudo apt install libargon2-dev
 ==================================================================
 ONCE YOU FINISH SETTING UP ALL DEPENDENCIES
 ==================================================================
-then you do below commands to COMPILE:
+Then you do below commands to COMPILE using CMake (automated setup):
 
 1- mkdir -p build && build
-2- cmake ..
+
+2- Use CMake
+	For Release build:
+cmake -DCMAKE_BUILD_TYPE=Release ..
+	For Debug build:
+cmake -DCMAKE_BUILD_TYPE=Release ..
+
 3- make -j$(nproc)
+
+To switch between cmake build types:
+
+1- enter the cmake build type command as shown above in step 2
+
+2- make clean
+
+3- make
 
 ==================================================================
 IMPORTANT, DO NOT IGNORE OR YOUR CLIENT WILL PROBABLY CRASH
