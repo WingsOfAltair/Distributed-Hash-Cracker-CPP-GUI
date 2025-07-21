@@ -153,6 +153,8 @@ MainWindow::MainWindow(QWidget* parent)
         "md5", "sha1", "sha256", "sha384", "sha512",
         "sha3-224", "sha3-256", "sha3-384", "sha3-512"
         });
+
+    RefreshList();
 }
 
 bool isPhpScryptHash(const std::string& hash) {
