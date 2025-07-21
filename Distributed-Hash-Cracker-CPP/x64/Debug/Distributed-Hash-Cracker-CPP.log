@@ -1,9 +1,0 @@
-﻿C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(524,5): warning MSB8004: Output Directory does not end with a trailing slash.  This build instance will add the slash as it is required to allow proper evaluation of the Output Directory.
-  Distributed-Hash-Cracker-CPP-Server.cpp
-  Please define _WIN32_WINNT or _WIN32_WINDOWS appropriately. For example:
-  - add -D_WIN32_WINNT=0x0601 to the compiler command line; or
-  - add _WIN32_WINNT=0x0601 to your project's Preprocessor Definitions.
-  Assuming _WIN32_WINNT=0x0601 (i.e. Windows 7 target).
-D:\GitHub\Distributed-Hash-Cracker-CPP-GUI\Distributed-Hash-Cracker-CPP\Distributed-Hash-Cracker-CPP-Server.cpp(103,1): warning C4715: 'extract_password_from_match_response': not all control paths return a value
-  LINK : D:\GitHub\Distributed-Hash-Cracker-CPP-GUI\build\Distributed-Hash-Cracker-CPP-Server.exe not found or not built by the last incremental link; performing full link
-  Distributed-Hash-Cracker-CPP.vcxproj -> D:\GitHub\Distributed-Hash-Cracker-CPP-GUI\build\Distributed-Hash-Cracker-CPP-Server.exe

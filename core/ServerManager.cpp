@@ -305,12 +305,12 @@ void ServerManager::acceptClients() {
 
 void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> socket) {
     std::string clientId = socket->remote_endpoint().address().to_string() + ":" + std::to_string(socket->remote_endpoint().port());
-
+    std::string nickname;
     {
         std::lock_guard<std::mutex> lock(clientsMutex);
         clients[clientId] = socket;
         auto it = clientsReady.find(clientId);
-        std::string nickname = (it != clientsReady.end()) ? it->second.first : "";
+        nickname = (it != clientsReady.end()) ? it->second.first : "";
 
         clientsReady[clientId] = {nickname, false};
         ++totalClients;
@@ -318,8 +318,8 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
     }
 
     emit clientConnected(QString::fromStdString(clientId));
-    emit logMessage("Client connected: " + QString::fromStdString(clientId));
-    logServer(std::string("Client connected: ") + clientId);
+    emit logMessage("Client connected: " + QString::fromStdString(clientId) + " " + QString::fromStdString(nickname));
+    logServer(std::string("Client connected: ") + clientId + " " + nickname);
     emit clientsStatusChanged();
 
     try {
@@ -348,7 +348,6 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
                 clientsMutex.lock();
                 auto it = clientsReady.find(clientId);
                 std::string nickname = (it != clientsReady.end()) ? it->second.first : "";
-
                 clientsReady[clientId] = {nickname, false};
                 clientsMutex.unlock();
 
@@ -371,10 +370,13 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
                 std::chrono::duration<double, std::milli> duration_ms = end - start;
 
                 emit logMessage("Match was not found" \
-                                " by Client " + QString::fromStdString(clientId) +
+                                " by Client " + QString::fromStdString(clientId) + " " + QString::fromStdString(nickname) +
                                 " Elapsed time: " + QString::number(duration_ms.count(), 'f', 3) + " ms.");
             }
             else if (message.find("MATCH:") == 0) {
+                auto it = clientsReady.find(clientId);
+                std::string nickname = (it != clientsReady.end()) ? it->second.first : "";
+
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double, std::milli> duration_ms = end - start;
 
@@ -394,7 +396,7 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
                     crackedLogger.log(currentHash.toStdString() + ":" + currentSalt.toStdString() + ":" + currentPassword.toStdString());
                 }
                 emit logMessage("Match: " + QString::fromStdString(match_info) +
-                                " by Client " + QString::fromStdString(clientId) +
+                                " by Client " + QString::fromStdString(clientId) + " " + QString::fromStdString(nickname) +
                                 " Elapsed time: " + QString::number(duration_ms.count(), 'f', 3) + " ms.");
                 this->StopCrackingClients();
                 emit StopCracking();
@@ -411,7 +413,9 @@ void ServerManager::handleClient(std::shared_ptr<boost::asio::ip::tcp::socket> s
         }
     }
     catch (...) {
-        emit logMessage("Client disconnected: " + QString::fromStdString(clientId));
+        auto it = clientsReady.find(clientId);
+        std::string nickname = (it != clientsReady.end()) ? it->second.first : "";
+        emit logMessage("Client disconnected: " + QString::fromStdString(clientId) + " " + QString::fromStdString(nickname));
         logServer(std::string("Client disconnected: ") + clientId);
 
         std::lock_guard<std::mutex> lock(clientsMutex);
