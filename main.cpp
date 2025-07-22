@@ -4,6 +4,7 @@
 
 int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
+    app.setWindowIcon(QIcon(":/icons/appicon.ico"));
     QApplication::setStyle(QStyleFactory::create("Fusion"));
 
     MainWindow window;

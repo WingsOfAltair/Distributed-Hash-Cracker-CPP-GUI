@@ -152,6 +152,7 @@ qt_add_executable(ScrutaNet-Server-GUI WIN32
     ${SOURCES}
     ${UIS_HDRS}
     ${RESOURCE_SOURCES}
+    ${SRC_DIR}/resources/app_icon.rc
 )
 
 target_compile_definitions(ScrutaNet-Server-GUI PRIVATE _WIN32_WINNT=0x0601)
