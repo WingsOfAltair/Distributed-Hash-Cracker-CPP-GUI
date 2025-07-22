@@ -148,12 +148,21 @@ include_directories(
     ${OPENSSL_INCLUDE_DIR}
 )
 
-qt_add_executable(ScrutaNet-Server-GUI WIN32
-    ${SOURCES}
-    ${UIS_HDRS}
-    ${RESOURCE_SOURCES}
-    ${SRC_DIR}/resources/app_icon.rc
-)
+if (WIN32)
+    set(WINDOWS_ICON_RESOURCE "${SRC_DIR}/resources/app_icon.rc")
+    qt_add_executable(ScrutaNet-Server-GUI WIN32
+        ${SOURCES}
+        ${UIS_HDRS}
+        ${RESOURCE_SOURCES}
+        ${WINDOWS_ICON_RESOURCE}
+    )
+else()
+    qt_add_executable(ScrutaNet-Server-GUI WIN32
+        ${SOURCES}
+        ${UIS_HDRS}
+        ${RESOURCE_SOURCES}
+    )
+endif()
 
 target_compile_definitions(ScrutaNet-Server-GUI PRIVATE _WIN32_WINNT=0x0601)
 
@@ -300,3 +309,42 @@ foreach(FILE ${CONFIG_FILES})
         )
     endforeach()
 endforeach()
+
+############################
+### ICON SETUP FOR LINUX ###
+############################
+
+# Paths to your resources
+set(APP_ICON_SOURCE "${CMAKE_SOURCE_DIR}/resources/icons/appicon.png")
+set(DESKTOP_FILE_SOURCE "${CMAKE_SOURCE_DIR}/resources/scrutanet.desktop.in")  # template desktop file
+
+# Executable info
+set(EXECUTABLE_NAME "ScrutaNet-Server-GUI")          # your executable target name
+set(INSTALL_BIN_DIR "bin")                            # relative to install prefix
+set(INSTALL_ICON_NAME "scrutanet")                    # icon base name (without extension)
+
+# Full executable path for desktop Exec= entry
+set(EXECUTABLE_PATH "${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/${EXECUTABLE_NAME}")
+
+# Configure the desktop file (replace placeholders)
+configure_file(
+    "${DESKTOP_FILE_SOURCE}"
+    "${CMAKE_CURRENT_BINARY_DIR}/scrutanet.desktop"
+    @ONLY
+)
+
+# Install executable (assumes target already defined)
+install(TARGETS ${EXECUTABLE_NAME}
+    RUNTIME DESTINATION ${INSTALL_BIN_DIR}
+)
+
+# Install icon to icon theme directory with rename
+install(FILES ${APP_ICON_SOURCE}
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/64x64/apps"
+    RENAME "${INSTALL_ICON_NAME}.png"
+)
+
+# Install the configured desktop file
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/scrutanet.desktop"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications"
+)
