@@ -41,7 +41,7 @@ The client can be configured to be multi-threaded or single-threaded. Also, it s
 
 <details>
 <summary> Server GUI</summary>
-<img width=500 src="repository_assets_github/ServerGUI-preview.png"/> 
+<img width=500 src="repository_assets_github/ServerGUI-HashTypes.png"/> 
 <img width=500 src="repository_assets_github/ServerGUI.png"/> 
 </details>
 <details>
