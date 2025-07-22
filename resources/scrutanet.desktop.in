@@ -1,0 +1,6 @@
+﻿[Desktop Entry]
+Name=ScrutaNet
+Exec=@EXECUTABLE_PATH@
+Icon=@INSTALL_ICON_NAME@
+Type=Application
+Categories=Utility;
