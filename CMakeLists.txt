@@ -320,11 +320,10 @@ set(DESKTOP_FILE_SOURCE "${CMAKE_SOURCE_DIR}/resources/scrutanet.desktop.in")  #
 
 # Executable info
 set(EXECUTABLE_NAME "ScrutaNet-Server-GUI")          # your executable target name
-set(INSTALL_BIN_DIR "bin")                            # relative to install prefix
-set(INSTALL_ICON_NAME "scrutanet")                    # icon base name (without extension)
+set(INSTALL_ICON_NAME "appicon")                    # icon base name (without extension)
 
 # Full executable path for desktop Exec= entry
-set(EXECUTABLE_PATH "${CMAKE_INSTALL_PREFIX}/${INSTALL_BIN_DIR}/${EXECUTABLE_NAME}")
+set(EXECUTABLE_PATH "${CMAKE_SOURCE_DIR}/build/${EXECUTABLE_NAME}")
 
 # Configure the desktop file (replace placeholders)
 configure_file(
@@ -333,18 +332,18 @@ configure_file(
     @ONLY
 )
 
-# Install executable (assumes target already defined)
-install(TARGETS ${EXECUTABLE_NAME}
-    RUNTIME DESTINATION ${INSTALL_BIN_DIR}
-)
+## Install executable (assumes target already defined)
+#install(TARGETS ${EXECUTABLE_NAME}
+#    RUNTIME DESTINATION ${INSTALL_BIN_DIR}
+#)
 
-# Install icon to icon theme directory with rename
-install(FILES ${APP_ICON_SOURCE}
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/64x64/apps"
-    RENAME "${INSTALL_ICON_NAME}.png"
-)
+## Install icon to icon theme directory with rename
+#install(FILES ${APP_ICON_SOURCE}
+#    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/64x64/apps"
+#    RENAME "${INSTALL_ICON_NAME}.png"
+#)
 
-# Install the configured desktop file
-install(FILES "${CMAKE_CURRENT_BINARY_DIR}/scrutanet.desktop"
-    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications"
-)
+## Install the configured desktop file
+#install(FILES "${CMAKE_CURRENT_BINARY_DIR}/scrutanet.desktop"
+#    DESTINATION "${CMAKE_INSTALL_PREFIX}/share/applications"
+#)
