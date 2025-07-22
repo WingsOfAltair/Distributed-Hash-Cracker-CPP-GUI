@@ -320,7 +320,7 @@ set(DESKTOP_FILE_SOURCE "${CMAKE_SOURCE_DIR}/resources/scrutanet.desktop.in")  #
 
 # Executable info
 set(EXECUTABLE_NAME "ScrutaNet-Server-GUI")          # your executable target name
-set(INSTALL_ICON_NAME "appicon")                    # icon base name (without extension)
+set(INSTALL_ICON_NAME "${APP_ICON_SOURCE}")                    # icon base name (without extension)
 
 # Full executable path for desktop Exec= entry
 set(EXECUTABLE_PATH "${CMAKE_SOURCE_DIR}/build/${EXECUTABLE_NAME}")
