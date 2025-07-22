@@ -88,7 +88,7 @@ MANUAL COMPILATION WITHOUT CMAKE (IGNORE BELOW UNLESS IF EXPERT.)
 
 (Create build folder and navigate inside it and run to compile client CLI):
 
-g++ -o DistributedHashCrackerClientCLI ../Distributed-Hash-Cracker-CPP-Client/Distributed-Hash-Cracker-CPP-Client.cpp \
+g++ -o ScrutaNetClientCLI ../ScrutaNet-Client-CLI/ScrutaNet-Client-CLI.cpp \
     -I../include -I../include/scrypt \
     -lboost_system -lssl -lcrypto -lboost_thread -lboost_chrono -lboost_locale \
     -lpthread -lbcrypt -lcrypt -largon2 -lsodium
@@ -97,7 +97,7 @@ g++ -o DistributedHashCrackerClientCLI ../Distributed-Hash-Cracker-CPP-Client/Di
 
 (Then run to compile server CLI):
 
-g++ ../Distributed-Hash-Cracker-CPP/Distributed-Hash-Cracker-CPP-Server.cpp -o DistributedHashCrackerServerCLI -lboost_system -lboost_filesystem -lssl -lboost_thread -lboost_chrono -lboost_locale -lpthread
+g++ ../ScrutaNet-Server-CLI/ScrutaNet-Server-CLI.cpp -o ScrutaNetServerCLI -lboost_system -lboost_filesystem -lssl -lboost_thread -lboost_chrono -lboost_locale -lpthread
 
 (Do not forget to move server.ini to build folder)
 
@@ -118,6 +118,6 @@ g++ -std=c++17 -fPIC ../main.cpp ../gui/*.cpp ../core/*.cpp ../shared/*.cpp ../m
     -lboost_system -lboost_filesystem -lboost_thread -lboost_chrono -lboost_locale \
     -lssl -lcrypto \
     -lpthread -ldl \
-    -o DistributedHashCrackerServerGUI
+    -o ScrutaNetServerGUI
 
 (Do not forget to move server.ini to build folder)

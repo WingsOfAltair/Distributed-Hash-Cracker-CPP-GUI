@@ -4,7 +4,7 @@ if(POLICY CMP0167)
     cmake_policy(SET CMP0167 OLD)
 endif()
 
-project(DistributedHashCrackerServerGUI LANGUAGES CXX)
+project(ScrutaNet-Server-GUI LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -90,18 +90,18 @@ endif()
 # ------------------------------
 # Client executable
 # ------------------------------
-add_executable(DistributedHashCrackerClient 
-    Distributed-Hash-Cracker-CPP-Client/Distributed-Hash-Cracker-CPP-Client.cpp
+add_executable(ScrutaNet-Client-CLI 
+    ScrutaNet-Client-CLI/ScrutaNet-Client-CLI.cpp
 )
 
-target_compile_definitions(DistributedHashCrackerClient PRIVATE SODIUM_STATIC)
+target_compile_definitions(ScrutaNet-Client-CLI PRIVATE SODIUM_STATIC)
 
-target_include_directories(DistributedHashCrackerClient PRIVATE
+target_include_directories(ScrutaNet-Client-CLI PRIVATE
     ${CMAKE_SOURCE_DIR}/include
 )
 
 if (WIN32)
-target_link_libraries(DistributedHashCrackerClient PRIVATE 
+target_link_libraries(ScrutaNet-Client-CLI PRIVATE 
     ${Boost_LIBRARIES}
     OpenSSL::SSL
     OpenSSL::Crypto
@@ -110,7 +110,7 @@ target_link_libraries(DistributedHashCrackerClient PRIVATE
     ${SODIUM_LIBRARIES}  
 )
 else()
-target_link_libraries(DistributedHashCrackerClient PRIVATE 
+target_link_libraries(ScrutaNet-Client-CLI PRIVATE 
     ${Boost_LIBRARIES}
     OpenSSL::SSL
     OpenSSL::Crypto
@@ -124,11 +124,11 @@ endif()
 # ------------------------------
 # Server CLI executable
 # ------------------------------
-add_executable(DistributedHashCrackerServer 
-    Distributed-Hash-Cracker-CPP/Distributed-Hash-Cracker-CPP-Server.cpp
+add_executable(ScrutaNet-Server-CLI 
+    ScrutaNet-Server-CLI/ScrutaNet-Server-CLI.cpp
 )
 
-target_link_libraries(DistributedHashCrackerServer PRIVATE 
+target_link_libraries(ScrutaNet-Server-CLI PRIVATE 
     ${Boost_LIBRARIES}
     OpenSSL::SSL
     OpenSSL::Crypto
@@ -148,16 +148,16 @@ include_directories(
     ${OPENSSL_INCLUDE_DIR}
 )
 
-qt_add_executable(DistributedHashCrackerServerGUI WIN32
+qt_add_executable(ScrutaNet-Server-GUI WIN32
     ${SOURCES}
     ${UIS_HDRS}
     ${RESOURCE_SOURCES}
 )
 
-target_compile_definitions(DistributedHashCrackerServerGUI PRIVATE _WIN32_WINNT=0x0601)
+target_compile_definitions(ScrutaNet-Server-GUI PRIVATE _WIN32_WINNT=0x0601)
 
 # Use target_include_directories instead of global include_directories
-target_include_directories(DistributedHashCrackerServerGUI PRIVATE
+target_include_directories(ScrutaNet-Server-GUI PRIVATE
     ${SRC_DIR}/include
     ${SRC_DIR}/gui
     ${SRC_DIR}/core
@@ -167,7 +167,7 @@ target_include_directories(DistributedHashCrackerServerGUI PRIVATE
 )
 
 if (WIN32)
-    target_link_libraries(DistributedHashCrackerServerGUI PRIVATE
+    target_link_libraries(ScrutaNet-Server-GUI PRIVATE
         Qt6::Core
         Qt6::Gui
         Qt6::Widgets
@@ -176,7 +176,7 @@ if (WIN32)
         OpenSSL::Crypto
     )
 else()
-    target_link_libraries(DistributedHashCrackerServerGUI PRIVATE
+    target_link_libraries(ScrutaNet-Server-GUI PRIVATE
         Qt6::Widgets
         ${Boost_LIBRARIES}
         OpenSSL::SSL
@@ -209,7 +209,7 @@ if(WIN32)
         )
     endif()
 
-    foreach(target DistributedHashCrackerServerGUI)
+    foreach(target ScrutaNet-Server-GUI)
         foreach(dll ${BOOST_DLLS})
             add_custom_command(TARGET ${target} POST_BUILD
                 COMMAND ${CMAKE_COMMAND} -E copy_if_different "${dll}" $<TARGET_FILE_DIR:${target}>
@@ -221,25 +221,25 @@ if(WIN32)
     get_filename_component(QtCore_bin_dir "${QtCore_location}" DIRECTORY)
     
     # Create the platforms directory once
-    add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
+    add_custom_command(TARGET ScrutaNet-Server-GUI POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
-            "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
+            "$<TARGET_FILE_DIR:ScrutaNet-Server-GUI>/platforms"
     )
 
     # Debug config: copy qwindowsd.dll
-    add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
+    add_custom_command(TARGET ScrutaNet-Server-GUI POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${QtCore_bin_dir}/../plugins/platforms/qwindowsd.dll"
-            "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms/qwindowsd.dll"
+            "$<TARGET_FILE_DIR:ScrutaNet-Server-GUI>/platforms/qwindowsd.dll"
         COMMENT "Copying qwindowsd.dll for Debug"
         CONFIGURATIONS Debug
     )
 
     # Release config: copy qwindows.dll
-    add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
+    add_custom_command(TARGET ScrutaNet-Server-GUI POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${QtCore_bin_dir}/../plugins/platforms/qwindows.dll"
-            "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms/qwindows.dll"
+            "$<TARGET_FILE_DIR:ScrutaNet-Server-GUI>/platforms/qwindows.dll"
         COMMENT "Copying qwindows.dll for Release"
         CONFIGURATIONS Release
     )
@@ -254,22 +254,22 @@ if(WIN32)
     )
 
     foreach(dll ${QT_DLLS})
-        add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
+        add_custom_command(TARGET ScrutaNet-Server-GUI POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${QtCore_bin_dir}/${dll}"
-                $<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>
+                $<TARGET_FILE_DIR:ScrutaNet-Server-GUI>
         )
     endforeach()
 
-    add_custom_command(TARGET DistributedHashCrackerClient POST_BUILD
+    add_custom_command(TARGET ScrutaNet-Client-CLI POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CMAKE_SOURCE_DIR}/include/argon2/argon2.dll"
-            "$<TARGET_FILE_DIR:DistributedHashCrackerClient>"
+            "$<TARGET_FILE_DIR:ScrutaNet-Client-CLI>"
     )             
-    add_custom_command(TARGET DistributedHashCrackerClient POST_BUILD
+    add_custom_command(TARGET ScrutaNet-Client-CLI POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${CMAKE_SOURCE_DIR}/include/scrypt/libsodium.dll"
-            "$<TARGET_FILE_DIR:DistributedHashCrackerClient>"
+            "$<TARGET_FILE_DIR:ScrutaNet-Client-CLI>"
     )
 elseif(UNIX)
     # Linux: copy libqxcb.so
@@ -279,12 +279,12 @@ elseif(UNIX)
     set(PLATFORM_PLUGIN_FOLDER "/usr/lib/x86_64-linux-gnu/qt6/plugins/platforms")
     set(PLATFORM_PLUGIN "libqxcb.so")
 
-    add_custom_command(TARGET DistributedHashCrackerServerGUI POST_BUILD
+    add_custom_command(TARGET ScrutaNet-Server-GUI POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E make_directory
-            "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
+            "$<TARGET_FILE_DIR:ScrutaNet-Server-GUI>/platforms"
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
             "${PLATFORM_PLUGIN_FOLDER}/${PLATFORM_PLUGIN}"
-            "$<TARGET_FILE_DIR:DistributedHashCrackerServerGUI>/platforms"
+            "$<TARGET_FILE_DIR:ScrutaNet-Server-GUI>/platforms"
     )
 endif()
 
@@ -292,7 +292,7 @@ set(CONFIG_SRC_DIR "${CMAKE_SOURCE_DIR}/resources")
 set(CONFIG_FILES config.ini server.ini wordlist.txt mutation_list.txt mutation_list_generator_upto_n_times.py)
 
 foreach(FILE ${CONFIG_FILES})
-    foreach(target DistributedHashCrackerClient DistributedHashCrackerServerGUI)
+    foreach(target ScrutaNet-Client-CLI ScrutaNet-Server-GUI)
         add_custom_command(TARGET ${target} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different
                 "${CONFIG_SRC_DIR}/${FILE}" $<TARGET_FILE_DIR:${target}>

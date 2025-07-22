@@ -18,7 +18,7 @@ OR using CMake-GUI:
 
 1- Run CMake-GUI.exe
 2- Click browse source button
-3- Pick the root of source folder "Distributed-Hash-Cracker-CPP-GUI"
+3- Pick the root of source folder "ScrutaNet"
 4- Pick where to build the generated source (any other folder)
 5- Click configure and wait until it finishes
 6- Click generate button and close CMake

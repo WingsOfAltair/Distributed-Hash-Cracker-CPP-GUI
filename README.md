@@ -1,22 +1,23 @@
 <h3 align="center">
-	<a href="https://github.com/WingsOfAltair/Distributed-Hash-Cracker-CPP-GUI">Distributed Hash Cracker CPP GUI/CLI</a>
+	<img src="https://raw.githubusercontent.com/WingsOfAltair/ScrutaNet/refs/heads/main/repository_assets_github/ScrutaNet-nobg.png" width="100" height="100" alt="Logo"/><br/>
+	<a href="https://github.com/WingsOfAltair/ScrutaNet">ScrutaNet</a>
 </h3>
 
 <p align="center">
-	<a href="https://github.com/WingsOfAltair/Distributed-Hash-Cracker-CPP-GUI/stargazers"><img src="https://img.shields.io/github/stars/WingsOfAltair/Distributed-Hash-Cracker-CPP-GUI?colorA=363a4f&colorB=b7bdf8&style=for-the-badge"></a>
-	<a href="https://github.com/WingsOfAltair/Distributed-Hash-Cracker-CPP-GUI/issues"><img src="https://img.shields.io/github/issues/WingsOfAltair/Distributed-Hash-Cracker-CPP-GUI?colorA=363a4f&colorB=f5a97f&style=for-the-badge"></a>
-	<a href="https://github.com/WingsOfAltair/Distributed-Hash-Cracker-CPP-GUI/contributors"><img src="https://img.shields.io/github/contributors/WingsOfAltair/Distributed-Hash-Cracker-CPP-GUI?colorA=363a4f&colorB=a6da95&style=for-the-badge"></a>
+	<a href="https://github.com/WingsOfAltair/ScrutaNet/stargazers"><img src="https://img.shields.io/github/stars/WingsOfAltair/ScrutaNet?colorA=363a4f&colorB=b7bdf8&style=for-the-badge"></a>
+	<a href="https://github.com/WingsOfAltair/ScrutaNet/issues"><img src="https://img.shields.io/github/issues/WingsOfAltair/ScrutaNet?colorA=363a4f&colorB=f5a97f&style=for-the-badge"></a>
+	<a href="https://github.com/WingsOfAltair/ScrutaNet/contributors"><img src="https://img.shields.io/github/contributors/WingsOfAltair/ScrutaNet?colorA=363a4f&colorB=a6da95&style=for-the-badge"></a>
 </p>
 
 <p align="center">
-	<img width=500 src="repository_assets_github/ServerGUI-preview.png"/>
+	<img width=500 src="repository_assets_github/ScrutaNet.png"/>
 </p>
 
 ## About
 
 This repository contains the source code to three projects:
 
-1. Distributed Hash Cracker Server GUI
+1. ScrutaNet Server GUI
 
 A centralized real-time command center which manages several hash cracking clients. It is built using Qt6 C++ with an intuitive graphical user interface; supporting both Light & Dark mode.
 
@@ -26,11 +27,11 @@ Clients can be given nicknames to differentiate between them using the server GU
 
 Clients can be restarted, shutdown, reloaded, and stopped using this version (GUI).
 
-2. Distributed Hash Cracker Server CLI
+2. ScrutaNet Server CLI
 
 A centralized command center with limited features. It is meant as a lightweight command center with a command line interface.
 
-3. Distributed Hash Cracker Client CLI
+3. ScrutaNet Client CLI
 
 The actual hash cracking client which connects to the server and receives coordination requests from it. Multiple clients connect to the same server to attack one hash.
 
@@ -40,6 +41,9 @@ The client can be configured to be multi-threaded or single-threaded. Also, it s
 
 <details>
 <summary> Server GUI</summary>
+Dark Mode
+<img width=500 src="repository_assets_github/ServerGUI-preview.png"/> 
+Light Mode
 <img width=500 src="repository_assets_github/ServerGUI.png"/> 
 </details>
 <details>
@@ -73,7 +77,7 @@ The client can be configured to be multi-threaded or single-threaded. Also, it s
 &nbsp;
 
 <p align="center">
-	<a href="https://wingsofaltair.github.io/Plancksoft/"> <img src="https://raw.githubusercontent.com/WingsOfAltair/Plancksoft/refs/heads/main/Content/assets/img/placksoft.png" /></a>
+	<a href="https://wingsofaltair.github.io/Plancksoft/"> <img src="https://raw.githubusercontent.com/WingsOfAltair/Plancksoft/refs/heads/main/Content/assets/img/plancksoft.png" /></a>
 </p>
 
 <p align="center">
@@ -81,5 +85,5 @@ The client can be configured to be multi-threaded or single-threaded. Also, it s
 </p>
 
 <p align="center">
-	<a href="https://raw.githubusercontent.com/WingsOfAltair/Distributed-Hash-Cracker-CPP-GUI/refs/heads/main/repository_assets_github/LICENSE"><img src="https://img.shields.io/static/v1.svg?style=for-the-badge&label=License&message=MIT&logoColor=d9e0ee&colorA=363a4f&colorB=b7bdf8"/></a>
+	<a href="https://raw.githubusercontent.com/WingsOfAltair/ScrutaNet/refs/heads/main/repository_assets_github/LICENSE"><img src="https://img.shields.io/static/v1.svg?style=for-the-badge&label=License&message=MIT&logoColor=d9e0ee&colorA=363a4f&colorB=b7bdf8"/></a>
 </p>

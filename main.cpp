@@ -7,7 +7,7 @@ int main(int argc, char* argv[]) {
     QApplication::setStyle(QStyleFactory::create("Fusion"));
 
     MainWindow window;
-    window.setWindowTitle("Distributed Hash Cracker - Server GUI");
+    window.setWindowTitle("ScrutaNet - Server GUI");
     window.resize(800, 600); // Optional: default window size
     window.show();
 
