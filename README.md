@@ -75,7 +75,7 @@ The client can be configured to be multi-threaded or single-threaded. Also, it s
 &nbsp;
 
 <p align="center">
-	<a href="https://wingsofaltair.github.io/Plancksoft/"> <img src="https://raw.githubusercontent.com/WingsOfAltair/Plancksoft/refs/heads/main/Content/assets/img/plancksoft.png" /></a>
+	<a href="https://wingsofaltair.github.io/Plancksoft/" target="_blank"> <img src="https://raw.githubusercontent.com/WingsOfAltair/Plancksoft/refs/heads/main/Content/assets/img/plancksoft.png" /></a>
 </p>
 
 <p align="center">
@@ -83,5 +83,5 @@ The client can be configured to be multi-threaded or single-threaded. Also, it s
 </p>
 
 <p align="center">
-	<a href="https://raw.githubusercontent.com/WingsOfAltair/ScrutaNet/refs/heads/main/repository_assets_github/LICENSE"><img src="https://img.shields.io/static/v1.svg?style=for-the-badge&label=License&message=MIT&logoColor=d9e0ee&colorA=363a4f&colorB=b7bdf8"/></a>
+	<a href="https://raw.githubusercontent.com/WingsOfAltair/ScrutaNet/refs/heads/main/repository_assets_github/LICENSE" target="_blank"><img src="https://img.shields.io/static/v1.svg?style=for-the-badge&label=License&message=MIT&logoColor=d9e0ee&colorA=363a4f&colorB=b7bdf8"/></a>
 </p>
