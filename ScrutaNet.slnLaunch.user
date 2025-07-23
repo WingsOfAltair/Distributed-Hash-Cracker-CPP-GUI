@@ -3,11 +3,11 @@
     "Name": "New Profile",
     "Projects": [
       {
-        "Path": "Distributed-Hash-Cracker-CPP-Client\\Distributed-Hash-Cracker-CPP-Client.vcxproj",
+        "Path": "ScrutaNet-Server-CLI\\ScrutaNet-Server-CLI.vcxproj",
         "Action": "Start"
       },
       {
-        "Path": "Distributed-Hash-Cracker-CPP\\Distributed-Hash-Cracker-CPP.vcxproj",
+        "Path": "ScrutaNet-Client-CLI\\ScrutaNet-Client-CLI.vcxproj",
         "Action": "Start"
       }
     ]
