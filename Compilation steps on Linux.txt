@@ -60,7 +60,7 @@ Then you do below commands to COMPILE using CMake (automated setup):
 	For Release build:
 cmake -DCMAKE_BUILD_TYPE=Release ..
 	For Debug build:
-cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake -DCMAKE_BUILD_TYPE=Debug ..
 
 3- make -j$(nproc)
 
